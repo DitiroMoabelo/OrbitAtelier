@@ -22,7 +22,7 @@ export function registerRgb(
     offset,
     saturation: options.saturation ?? 0.52,
     lightness: options.lightness ?? 0.55,
-    speed: options.speed ?? 0.025,
+    speed: options.speed ?? 0.055,
   })
 }
 

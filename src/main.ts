@@ -3,12 +3,10 @@ import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
 import { projects } from './data/projects'
-import { isPhoneUA, isTouch, pixelCap, viewSize } from './device'
-import { createNeonRig, createRoom } from './scene/room'
-import { createSunDust, createSunRig } from './scene/atmosphere'
+import { isPhoneUA, isTouch, pixelCap, shadowMapSize, viewSize } from './device'
+import { createDust, createNeonRig, createRoom, createRoomLights } from './scene/room'
 import { createProps, setPropActive, setPropHover, updateProps } from './scene/props'
 import { updateRgb } from './scene/rgb'
-import { createPostPipeline } from './post/composer'
 import { CameraRig } from './interaction/cameraRig'
 import { PropPicker } from './interaction/picker'
 import { BootScreen, ProjectPanel, PropNav } from './ui/overlay'
@@ -24,6 +22,8 @@ if (!canvas || !app) {
 
 let renderer: THREE.WebGLRenderer
 try {
+  // Prefer a permissive context: some GPUs reject high-performance hints
+  // even though WebGL itself works.
   renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: !isPhoneUA,
@@ -43,49 +43,48 @@ try {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const boot = new BootScreen()
-boot.setProgress(12, 'Opening the blinds…')
+boot.setProgress(12, 'Unlocking the door…')
 
-renderer.setClearColor(0x1a1412, 1)
+renderer.setClearColor(0x1c1618, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelCap()))
 renderer.setSize(window.innerWidth, window.innerHeight, false)
 renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.08
+renderer.toneMappingExposure = 1.05
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 RectAreaLightUniformsLib.init()
 
 const scene = new THREE.Scene()
-// Warm haze so sunlight has something to catch — Lucas-style atmosphere.
-scene.fog = new THREE.FogExp2(0xB8A898, 0.008)
+scene.fog = new THREE.Fog(0x1c1618, 18, 42)
 const pmrem = new THREE.PMREMGenerator(renderer)
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-scene.environmentIntensity = 0.42
+scene.environmentIntensity = 0.38
 
-boot.setProgress(34, 'Letting the sun in…')
+boot.setProgress(34, 'Painting the walls…')
 
 const rig = new CameraRig(canvas)
 scene.add(createRoom())
 
-boot.setProgress(52, 'Casting the afternoon light…')
+boot.setProgress(56, 'Plugging in the RGB…')
 
-const sun = createSunRig()
-scene.add(sun.group)
-
+const lights = createRoomLights()
+const map = shadowMapSize()
+lights.sun.shadow.mapSize.set(map, map)
+scene.add(lights.group)
 const neon = createNeonRig()
 scene.add(neon.group)
 
-const dust = createSunDust()
+const dust = createDust()
 scene.add(dust.points)
 
-boot.setProgress(74, 'Setting up the battle station…')
+boot.setProgress(76, 'Setting up the battle station…')
 
 const { root: propsRoot, handles } = createProps(projects)
 scene.add(propsRoot)
 
 const labelRenderer = createLabelRenderer(app)
 const labels = new PropLabels(handles)
-const post = createPostPipeline(renderer, scene, rig.camera)
 
 const picker = new PropPicker(handles)
 let selectedId: string | null = null
@@ -123,11 +122,8 @@ function select(id: string, instant = false) {
 
 function resize() {
   const { width, height } = viewSize()
-  const pr = Math.min(window.devicePixelRatio, pixelCap())
-  renderer.setPixelRatio(pr)
   renderer.setSize(width, height, false)
   labelRenderer.setSize(width, height)
-  post.resize(width, height, pr)
   rig.resize(width, height)
 }
 
@@ -172,7 +168,7 @@ canvas.addEventListener('pointerleave', () => {
   canvas.classList.remove('is-hover')
 })
 
-boot.setProgress(92, 'Warming the dust in the beam…')
+boot.setProgress(92, 'Catching dust in the neon…')
 
 let last = performance.now()
 let elapsed = 0
@@ -183,12 +179,11 @@ function frame(now: number) {
   if (!reducedMotion) elapsed += dt
 
   updateRgb(elapsed)
-  sun.update(elapsed)
   dust.update(elapsed)
   updateProps(handles, dt, elapsed)
   rig.update(dt)
 
-  post.render()
+  renderer.render(scene, rig.camera)
   labelRenderer.render(scene, rig.camera)
   requestAnimationFrame(frame)
 }
@@ -200,6 +195,7 @@ requestAnimationFrame(frame)
 const deepLink = window.location.hash.slice(1)
 if (deepLink) select(deepLink, true)
 
+// Keep the selection state truthful if the panel is dismissed some other way.
 window.addEventListener('blur', () => {
   if (!panel.open && selectedId) {
     selectedId = null
