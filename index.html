@@ -3,43 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/OrbitAtelier/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
     <meta
       name="description"
-      content="Charm Atelier — a kinetic WebGL sculpture by Ditiro Moabelo. Pull a hanging charm to open each project."
+      content="The Setup — an explorable WebGL bedroom by Ditiro Moabelo. Every prop on the desk, shelf and windowsill opens a real project."
     />
-    <title>Charm Atelier · Ditiro Moabelo</title>
+    <meta name="theme-color" content="#1c1618" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Outfit:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/OrbitAtelier/assets/index-Be4Iph-i.js"></script>
-    <link rel="stylesheet" crossorigin href="/OrbitAtelier/assets/index-Cfvr-BRR.css">
+    <script type="module" crossorigin src="/OrbitAtelier/assets/index-DUloqj-q.js"></script>
+    <link rel="stylesheet" crossorigin href="/OrbitAtelier/assets/index-CsNyTuVB.css">
   </head>
   <body>
     <div id="app">
-      <canvas id="orbit-canvas" aria-label="Interactive kinetic charm mobile of portfolio projects"></canvas>
+      <canvas
+        id="orbit-canvas"
+        aria-label="Interactive 3D bedroom where each prop opens a portfolio project"
+      ></canvas>
 
       <div id="boot" class="boot" aria-live="polite">
-        <p class="boot__brand">Charm Atelier</p>
+        <p class="boot__brand">The Setup</p>
         <div class="boot__bar"><span id="boot-fill"></span></div>
-        <p class="boot__hint" id="boot-hint">Threading the mobile…</p>
+        <p class="boot__hint" id="boot-hint">Unlocking the door…</p>
       </div>
 
       <header class="chrome chrome--top">
         <div class="brand">
           <p class="brand__name">Ditiro Moabelo</p>
-          <h1 class="brand__title">Charm Atelier</h1>
-          <p class="brand__sub">A hanging kinetic sculpture of my work — not a solar system demo.</p>
+          <h1 class="brand__title">The Setup</h1>
+          <p class="brand__sub">
+            An explorable bedroom portfolio — every prop is a real project.
+          </p>
         </div>
-        <p class="hint" id="hint">Drag to look · Scroll to zoom · Pull a charm</p>
+        <p class="hint" id="hint">Drag to look · Scroll to zoom · Click a prop</p>
       </header>
 
       <aside id="panel" class="panel" hidden>
-        <button type="button" class="panel__close" id="panel-close" aria-label="Release charm">
-          ← Release charm
+        <button type="button" class="panel__close" id="panel-close" aria-label="Back to the room">
+          ← Back to the room
         </button>
         <p class="panel__eyebrow" id="panel-tech"></p>
         <h2 class="panel__title" id="panel-title"></h2>
@@ -49,18 +59,18 @@
       </aside>
 
       <footer class="chrome chrome--bottom">
-        <p>WebGL · custom velvet shader · pendulum mobile · unique charm silhouettes</p>
+        <p>Click a prop to open the case study</p>
       </footer>
 
       <div id="no-webgl" class="no-webgl" hidden>
         <h2>WebGL isn’t available here</h2>
         <p>
-          Charm Atelier needs a browser with WebGL. Try Chrome or Edge with graphics
+          The Setup needs a browser with WebGL. Try Chrome or Edge with graphics
           acceleration on, or open
           <a href="https://ditiromoabelo.github.io/DitiroPortfolio/">the main portfolio</a> instead.
         </p>
         <p data-webgl-detail class="boot__hint"></p>
       </div>
-    </div>
+    </div>
   </body>
 </html>
