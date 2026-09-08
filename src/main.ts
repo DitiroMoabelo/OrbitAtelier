@@ -8,10 +8,11 @@ import { createDust, createNeonRig, createRoom, createRoomLights } from './scene
 import { createProps, setPropActive, setPropHover, updateProps } from './scene/props'
 import { loadHdriEnvironment } from './scene/environment'
 import { loadOptionalModels } from './scene/modelLoader'
+import { upgradeRoomSurfaces } from './scene/surfaces'
 import { updateRgb } from './scene/rgb'
 import { CameraRig } from './interaction/cameraRig'
 import { PropPicker } from './interaction/picker'
-import { BootScreen, ProjectPanel, PropNav } from './ui/overlay'
+import { BootScreen, ProjectPanel } from './ui/overlay'
 import { PropLabels, createLabelRenderer } from './ui/labels'
 
 const canvas = document.getElementById('orbit-canvas') as HTMLCanvasElement | null
@@ -77,6 +78,13 @@ const rig = new CameraRig(canvas)
 const room = createRoom()
 scene.add(room)
 
+const surfaces = await upgradeRoomSurfaces(room, (label) => {
+  boot.setProgress(56, label)
+})
+if (surfaces.length) {
+  console.info('[The Setup] Upgraded surfaces:', surfaces.join(', '))
+}
+
 boot.setProgress(62, 'Plugging in the RGB…')
 
 const lights = createRoomLights()
@@ -111,13 +119,10 @@ let hoveredId: string | null = null
 const panel = new ProjectPanel(() => {
   selectedId = null
   setPropActive(handles, null)
-  nav.setActive(null)
   labels.setSelected(null)
   rig.resetHome()
   if (window.location.hash) history.replaceState(null, '', window.location.pathname)
 })
-
-const nav = new PropNav(projects, (id) => select(id))
 
 function select(id: string, instant = false) {
   const handle = handles.find((item) => item.project.id === id)
@@ -125,7 +130,6 @@ function select(id: string, instant = false) {
 
   selectedId = id
   setPropActive(handles, id)
-  nav.setActive(id)
   labels.setSelected(id)
 
   const { focus, camOffset } = handle.project
@@ -218,7 +222,6 @@ window.addEventListener('blur', () => {
   if (!panel.open && selectedId) {
     selectedId = null
     setPropActive(handles, null)
-    nav.setActive(null)
     labels.setSelected(null)
   }
 })

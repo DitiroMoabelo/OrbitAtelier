@@ -20,9 +20,28 @@ export type ModelSlot = {
   /** Auto-scale so the model is roughly this tall in metres. */
   targetHeight?: number
   castShadow?: boolean
+  /**
+   * When true (default), drop the model onto y = 0 after scaling.
+   * Set false for wall-mounted pieces so `position.y` is kept.
+   */
+  ground?: boolean
 }
 
 export const HDRI_URL = '/hdri/studio_small_09_1k.hdr'
+
+/** PBR maps under /textures/ — applied when present. */
+export const SURFACE_MAPS = {
+  floor: {
+    diff: 'textures/floor_diff.jpg',
+    nor: 'textures/floor_nor.jpg',
+    rough: 'textures/floor_rough.jpg',
+  },
+  carpet: {
+    diff: 'textures/carpet_diff.jpg',
+    nor: 'textures/carpet_nor.jpg',
+    rough: 'textures/carpet_rough.jpg',
+  },
+} as const
 
 export const MODEL_SLOTS: ModelSlot[] = [
   {
@@ -39,7 +58,7 @@ export const MODEL_SLOTS: ModelSlot[] = [
     replaces: 'slot-plant',
     position: [-6.2, 0, -1.4],
     rotationY: 0.4,
-    targetHeight: 1.4,
+    targetHeight: 1.45,
   },
   {
     file: 'bookshelf.glb',
@@ -52,9 +71,10 @@ export const MODEL_SLOTS: ModelSlot[] = [
   {
     file: 'bed.glb',
     attachTo: 'room',
+    replaces: 'slot-bed',
     position: [5.2, 0, 3.1],
     rotationY: -Math.PI / 2,
-    targetHeight: 1.1,
+    targetHeight: 1.05,
   },
   {
     file: 'desk.glb',
@@ -71,5 +91,24 @@ export const MODEL_SLOTS: ModelSlot[] = [
     position: [0, 0, 0],
     rotationY: 0,
     targetHeight: 0.9,
+  },
+  {
+    file: 'frame-a.glb',
+    attachTo: 'room',
+    replaces: 'slot-posters',
+    position: [-1.95, 3.15, -4.38],
+    rotationY: 0,
+    targetHeight: 0.9,
+    ground: false,
+    castShadow: false,
+  },
+  {
+    file: 'frame-b.glb',
+    attachTo: 'room',
+    position: [-0.85, 3.35, -4.38],
+    rotationY: 0,
+    targetHeight: 0.62,
+    ground: false,
+    castShadow: false,
   },
 ]

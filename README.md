@@ -56,6 +56,5 @@ npm run build
 | --- | --- |
 | Drag | Look around the room |
 | Scroll | Zoom |
-| Click a prop | Dolly in and open its case study |
-| Bottom chips | Jump straight to any project |
+| Click a prop / its label | Dolly in and open its case study |
 | Esc | Step back into the room |

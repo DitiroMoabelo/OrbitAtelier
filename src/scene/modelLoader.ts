@@ -69,10 +69,12 @@ function placeSlot(host: THREE.Object3D, model: THREE.Object3D, slot: ModelSlot)
   if (slot.targetHeight) scale = fitHeight(model, slot.targetHeight)
   model.scale.setScalar(scale)
 
-  // After scaling, sit the model on the local floor (y = 0).
-  const box = new THREE.Box3().setFromObject(model)
-  if (Number.isFinite(box.min.y)) {
-    model.position.y -= box.min.y
+  // After scaling, sit floor props on y = 0. Wall props keep their Y.
+  if (slot.ground !== false) {
+    const box = new THREE.Box3().setFromObject(model)
+    if (Number.isFinite(box.min.y)) {
+      model.position.y -= box.min.y
+    }
   }
 
   host.add(model)

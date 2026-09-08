@@ -1,40 +1,48 @@
-# Drop-in 3D models
+# Drop-in 3D models & textures
 
-Put free `.glb` files here and they load automatically at boot.
-If a file is missing, the procedural (code-built) prop stays.
+Put free `.glb` files in `models/` and PBR maps in `textures/`.
+Missing files fall back to the procedural room.
 
-## Filenames that work today
+## Models (`/models`)
 
 | File | Replaces | Where |
 | --- | --- | --- |
-| `chair.glb` | procedural gaming chair | Helpdesk desk |
-| `bookshelf.glb` | procedural shelf | TwiceAsBooks |
-| `nightstand.glb` | procedural nightstand | MediBook |
-| `plant.glb` | procedural plant | left wall |
-| `bed.glb` | *(adds beside bed area)* | room |
-| `desk.glb` | desk surface block | Helpdesk |
+| `chair.glb` | gaming chair | Helpdesk |
+| `plant.glb` | plant | left wall |
+| `bed.glb` | bed frame | right side |
+| `frame-a.glb` / `frame-b.glb` | wall posters | back wall |
+| `bookshelf.glb` | shelf | TwiceAsBooks |
+| `nightstand.glb` | nightstand | MediBook |
+| `desk.glb` | desk surface | Helpdesk |
 
-A sample **SheenChair** (`chair.glb`) is already included so you can see the pipeline working.
-Swap it for any CC0 gaming chair you like.
+Bundled Poly Haven (CC0) assets: plant, bed, hanging frames.
+Chair sample: Khronos SheenChair.
+
+## Textures (`/textures`)
+
+| File | Surface |
+| --- | --- |
+| `floor_diff.jpg` / `_nor` / `_rough` | wood floorboards |
+| `carpet_diff.jpg` / `_nor` / `_rough` | circular rug |
+
+Bundled: Poly Haven `wood_floor` + `wool_boucle` (1k, CC0).
 
 ## Free places to download
 
-1. [Poly Haven](https://polyhaven.com/models) — CC0, high quality (plants, furniture)
-2. [Kenney](https://kenney.nl/assets) — CC0, clean game-ready packs
-3. [Quaternius](https://quaternius.com/) — CC0 stylized packs
-4. [Sketchfab](https://sketchfab.com/) — filter **Downloadable + Free**, prefer **CC0**
-5. [AmbientCG](https://ambientcg.com/) — free PBR textures if you texture your own models
+1. [Poly Haven](https://polyhaven.com/) — CC0 models + textures
+2. [Kenney](https://kenney.nl/assets) — CC0 game packs
+3. [Quaternius](https://quaternius.com/) — CC0 stylized
+4. [Sketchfab](https://sketchfab.com/) — Downloadable + Free, prefer CC0
 
-Export / download as **glTF Binary (`.glb`)**.
+Export models as **glTF Binary (`.glb`)**. Keep each under ~5 MB when you can.
 
 ## Tips
 
-- Keep each file under ~5 MB so GitHub Pages stays fast.
-- Prefer real-world scale (1 unit = 1 metre). The loader also auto-fits height.
-- To add a new slot, edit `src/assets/slots.ts`.
-- HDRI lighting lives in `public/hdri/` (Poly Haven `studio_small_09`, CC0).
+- Prefer real-world scale (1 unit = 1 metre). The loader auto-fits height.
+- Wall pieces need `ground: false` in `src/assets/slots.ts` so they stay off the floor.
+- HDRI lighting: `public/hdri/studio_small_09_1k.hdr` (Poly Haven, CC0).
 
 ## Licence note
 
-`studio_small_09` HDRI — [Poly Haven](https://polyhaven.com/a/studio_small_09), CC0  
-`chair.glb` (SheenChair) — [Khronos glTF Sample Models](https://github.com/KhronosGroup/glTF-Sample-Models), used as a temporary demo asset
+All bundled Poly Haven files are CC0.  
+`chair.glb` (SheenChair) — [Khronos glTF Sample Models](https://github.com/KhronosGroup/glTF-Sample-Models).

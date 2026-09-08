@@ -78,33 +78,6 @@ export class ProjectPanel {
   }
 }
 
-/** Bottom rail of prop shortcuts, so nothing in the room is missable. */
-export class PropNav {
-  private readonly root = el('nav-rail')
-  private readonly buttons = new Map<string, HTMLButtonElement>()
-
-  constructor(projects: RoomProject[], onSelect: (id: string) => void) {
-    this.root.replaceChildren()
-    projects.forEach((project) => {
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = 'nav-chip'
-      button.textContent = project.short
-      button.setAttribute('aria-label', `Open ${project.short}`)
-      button.style.setProperty('--chip-accent', project.accent)
-      button.addEventListener('click', () => onSelect(project.id))
-      this.root.appendChild(button)
-      this.buttons.set(project.id, button)
-    })
-  }
-
-  setActive(id: string | null) {
-    this.buttons.forEach((button, key) => {
-      button.classList.toggle('is-active', key === id)
-    })
-  }
-}
-
 function el<T extends HTMLElement = HTMLElement>(id: string): T {
   const node = document.getElementById(id)
   if (!node) throw new Error(`Missing #${id}`)

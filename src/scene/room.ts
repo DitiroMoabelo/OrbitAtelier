@@ -99,6 +99,7 @@ export function createRoom(): THREE.Group {
     new THREE.PlaneGeometry(ROOM.halfWidth * 2, ROOM.depth),
     woodFloor(),
   )
+  floor.name = 'slot-floor'
   floor.rotation.x = -Math.PI / 2
   floor.position.z = ROOM.backZ + ROOM.depth / 2
   floor.receiveShadow = true
@@ -135,6 +136,7 @@ export function createRoom(): THREE.Group {
 
 function createRug(): THREE.Group {
   const g = new THREE.Group()
+  g.name = 'slot-rug'
   const { fabricPink, bump } = maps()
   const pile = fabric('#E8B4C8', fabricPink)
   pile.bumpMap = bump
@@ -160,23 +162,27 @@ function createBed(): THREE.Group {
   g.position.set(5.2, 0, 3.1)
   g.rotation.y = -Math.PI / 2
 
+  const bed = new THREE.Group()
+  bed.name = 'slot-bed'
+
   const { walnut, fabricPink, fabricCream } = maps()
   const frame = new THREE.MeshStandardMaterial({ color: '#8A5A48', map: walnut, roughness: 0.55 })
-  g.add(box(3.4, 0.42, 1.9, frame, 0, 0.28, 0))
-  g.add(box(0.18, 1.6, 1.9, frame, -1.7, 0.8, 0))
-  g.add(box(3.3, 0.32, 1.82, fabric('#F4E6DC', fabricCream), 0.03, 0.63, 0))
-  g.add(box(2.35, 0.3, 1.9, fabric('#E8A8C0', fabricPink), 0.5, 0.79, 0))
-  g.add(box(0.5, 0.32, 1.9, fabric('#C4A0D4', fabricPink), -0.75, 0.8, 0))
+  bed.add(box(3.4, 0.42, 1.9, frame, 0, 0.28, 0))
+  bed.add(box(0.18, 1.6, 1.9, frame, -1.7, 0.8, 0))
+  bed.add(box(3.3, 0.32, 1.82, fabric('#F4E6DC', fabricCream), 0.03, 0.63, 0))
+  bed.add(box(2.35, 0.3, 1.9, fabric('#E8A8C0', fabricPink), 0.5, 0.79, 0))
+  bed.add(box(0.5, 0.32, 1.9, fabric('#C4A0D4', fabricPink), -0.75, 0.8, 0))
 
   const pillowMat = fabric('#F7F0EA', fabricCream)
   const pillowA = box(0.75, 0.26, 0.72, pillowMat, -1.25, 0.9, -0.42)
   pillowA.rotation.z = 0.08
-  g.add(pillowA)
+  bed.add(pillowA)
   const pillowB = box(0.75, 0.26, 0.72, pillowMat, -1.25, 0.9, 0.42)
   pillowB.rotation.z = -0.06
-  g.add(pillowB)
+  bed.add(pillowB)
+  g.add(bed)
 
-  // Plushies — the detail that sells whose room this is.
+  // Plushies stay even when a GLB replaces slot-bed.
   g.add(createPlushie('#F7A8CE', '#FFD9EA', -0.55, 1.02, -0.35, 0.5))
   g.add(createPlushie('#B98BD6', '#E4CFF5', -0.35, 1.0, 0.42, -0.9))
   g.add(createPlushie('#8FD9E0', '#D6F4F7', 0.45, 0.98, 0.0, 0.2))
@@ -238,6 +244,7 @@ function createPlushie(
 
 function createPoster(): THREE.Group {
   const g = new THREE.Group()
+  g.name = 'slot-posters'
   const frameMat = std('#2E2233', 0.6)
   const shots: Array<[number, number, number, number, string]> = [
     [-1.9, 3.35, 0.62, 0.82, '#F19BC6'],
