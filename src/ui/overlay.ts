@@ -1,4 +1,6 @@
-import type { CharmProject } from '../data/projects'
+import type { RoomProject } from '../data/projects'
+
+const IDLE_HINT = 'Drag to look · Scroll to zoom · Click a prop'
 
 export class ProjectPanel {
   private readonly panel: HTMLElement
@@ -8,10 +10,8 @@ export class ProjectPanel {
   private readonly proof: HTMLElement
   private readonly actions: HTMLElement
   private readonly hint: HTMLElement
-  private readonly onClose: () => void
 
   constructor(onClose: () => void) {
-    this.onClose = onClose
     this.panel = el('panel')
     this.tech = el('panel-tech')
     this.title = el('panel-title')
@@ -22,18 +22,18 @@ export class ProjectPanel {
 
     el('panel-close').addEventListener('click', () => {
       this.hide()
-      this.onClose()
+      onClose()
     })
 
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !this.panel.hasAttribute('hidden')) {
         this.hide()
-        this.onClose()
+        onClose()
       }
     })
   }
 
-  show(project: CharmProject) {
+  show(project: RoomProject) {
     this.tech.textContent = project.tech
     this.title.textContent = project.name
     this.body.textContent = project.blurb
@@ -52,7 +52,7 @@ export class ProjectPanel {
 
     this.panel.hidden = false
     requestAnimationFrame(() => this.panel.classList.add('is-open'))
-    this.hint.textContent = 'Press Esc or release the charm to return'
+    this.hint.textContent = 'Press Esc to step back into the room'
   }
 
   hide() {
@@ -60,11 +60,37 @@ export class ProjectPanel {
     window.setTimeout(() => {
       this.panel.hidden = true
     }, 280)
-    this.hint.textContent = 'Drag to look · Scroll to zoom · Pull a charm'
+    this.hint.textContent = IDLE_HINT
   }
 
   get open() {
     return !this.panel.hasAttribute('hidden')
+  }
+}
+
+/** Bottom rail of prop shortcuts, so nothing in the room is missable. */
+export class PropNav {
+  private readonly root = el('nav-rail')
+  private readonly buttons = new Map<string, HTMLButtonElement>()
+
+  constructor(projects: RoomProject[], onSelect: (id: string) => void) {
+    this.root.replaceChildren()
+    projects.forEach((project) => {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'nav-chip'
+      button.textContent = project.short
+      button.style.setProperty('--chip-accent', project.accent)
+      button.addEventListener('click', () => onSelect(project.id))
+      this.root.appendChild(button)
+      this.buttons.set(project.id, button)
+    })
+  }
+
+  setActive(id: string | null) {
+    this.buttons.forEach((button, key) => {
+      button.classList.toggle('is-active', key === id)
+    })
   }
 }
 

@@ -1,12 +1,13 @@
 import './style.css'
 import * as THREE from 'three'
 import { projects } from './data/projects'
-import { createAtelierRoom, createDust, updateDust } from './scene/atelier'
-import { createMobile, impulseCharm, setCharmHover, updateMobile } from './scene/mobile'
+import { createDust, createNeonRig, createRoom, createRoomLights } from './scene/room'
+import { createProps, setPropActive, setPropHover, updateProps } from './scene/props'
+import { updateRgb } from './scene/rgb'
 import { CameraRig } from './interaction/cameraRig'
-import { CharmPicker } from './interaction/picker'
-import { BootScreen, ProjectPanel } from './ui/overlay'
-import { attachCharmLabels, createLabelRenderer } from './ui/labels'
+import { PropPicker } from './interaction/picker'
+import { BootScreen, ProjectPanel, PropNav } from './ui/overlay'
+import { PropLabels, createLabelRenderer } from './ui/labels'
 
 const canvas = document.getElementById('orbit-canvas') as HTMLCanvasElement | null
 const noWebgl = document.getElementById('no-webgl')
@@ -19,7 +20,7 @@ if (!canvas || !app) {
 let renderer: THREE.WebGLRenderer
 try {
   // Prefer a permissive context: some GPUs reject high-performance hints
-  // even though WebGL itself works (get.webgl.org still passes).
+  // even though WebGL itself works.
   renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
@@ -39,52 +40,76 @@ try {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const boot = new BootScreen()
-boot.setProgress(12, 'Opening the atelier…')
+boot.setProgress(12, 'Unlocking the door…')
 
-renderer.setClearColor(0xfff4ea, 1)
+renderer.setClearColor(0x2a1f33, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.setSize(window.innerWidth, window.innerHeight, false)
 renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.15
-
-boot.setProgress(30, 'Hanging the rail…')
+renderer.toneMappingExposure = 1.12
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.Fog(0xfff4ea, 12, 32)
+scene.fog = new THREE.Fog(0x2a1f33, 16, 40)
+
+boot.setProgress(34, 'Painting the walls…')
 
 const rig = new CameraRig(canvas)
-const room = createAtelierRoom()
+scene.add(createRoom())
+
+boot.setProgress(56, 'Plugging in the RGB…')
+
+const lights = createRoomLights()
+scene.add(lights.group)
+const neon = createNeonRig()
+scene.add(neon.group)
+
 const dust = createDust()
-const { root: mobileRoot, handles } = createMobile(projects)
+scene.add(dust.points)
 
-scene.add(room)
-scene.add(dust)
-scene.add(mobileRoot)
+boot.setProgress(76, 'Setting up the battle station…')
 
-const key = new THREE.DirectionalLight(0xfff0e8, 1.35)
-key.position.set(-4, 6, 5)
-scene.add(key)
-scene.add(new THREE.AmbientLight(0xffe8f0, 0.55))
-scene.add(new THREE.HemisphereLight(0xfff7ee, 0xe8d5c4, 0.7))
-const fill = new THREE.PointLight(0xf7c7d3, 12, 18, 2)
-fill.position.set(3, 2, 2)
-scene.add(fill)
-
-boot.setProgress(58, 'Balancing the charms…')
+const { root: propsRoot, handles } = createProps(projects)
+scene.add(propsRoot)
 
 const labelRenderer = createLabelRenderer(app)
-attachCharmLabels(handles)
+const labels = new PropLabels(handles)
 
-const picker = new CharmPicker(handles)
+const picker = new PropPicker(handles)
 let selectedId: string | null = null
 let hoveredId: string | null = null
 
 const panel = new ProjectPanel(() => {
   selectedId = null
+  setPropActive(handles, null)
+  nav.setActive(null)
+  labels.setSelected(null)
   rig.resetHome()
-  setCharmHover(handles, hoveredId)
+  if (window.location.hash) history.replaceState(null, '', window.location.pathname)
 })
+
+const nav = new PropNav(projects, (id) => select(id))
+
+function select(id: string, instant = false) {
+  const handle = handles.find((item) => item.project.id === id)
+  if (!handle) return
+
+  selectedId = id
+  setPropActive(handles, id)
+  nav.setActive(id)
+  labels.setSelected(id)
+
+  const { focus, camOffset } = handle.project
+  const target = new THREE.Vector3(...focus)
+  const offset = new THREE.Vector3(...camOffset)
+  if (instant) rig.snapTo(target, offset)
+  else rig.focusOn(target, offset)
+
+  panel.show(handle.project)
+  history.replaceState(null, '', `#${id}`)
+}
 
 function resize() {
   const width = window.innerWidth
@@ -104,11 +129,10 @@ canvas.addEventListener('pointerdown', (event) => {
 canvas.addEventListener('pointermove', (event) => {
   const rect = canvas.getBoundingClientRect()
   picker.setPointerFromEvent(event, rect)
-  const hit = picker.pick(rig.camera)
-  const next = hit?.id ?? null
+  const next = picker.pick(rig.camera)?.project.id ?? null
   if (next !== hoveredId) {
     hoveredId = next
-    setCharmHover(handles, selectedId ?? hoveredId)
+    setPropHover(handles, hoveredId)
     canvas.classList.toggle('is-hover', Boolean(hoveredId))
   }
 })
@@ -118,40 +142,48 @@ canvas.addEventListener('pointerup', (event) => {
   const rect = canvas.getBoundingClientRect()
   picker.setPointerFromEvent(event, rect)
   const hit = picker.pick(rig.camera)
-  if (!hit) return
-
-  selectedId = hit.id
-  setCharmHover(handles, selectedId)
-  impulseCharm(hit, 1.1)
-  const world = new THREE.Vector3()
-  hit.charm.getWorldPosition(world)
-  // Aim slightly above the charm so the label and body read clearly.
-  world.y += 0.2
-  rig.focusOn(world)
-  panel.show(hit.project)
+  if (hit) select(hit.project.id)
 })
 
 canvas.addEventListener('pointerleave', () => {
   hoveredId = null
-  if (!selectedId) setCharmHover(handles, null)
+  setPropHover(handles, null)
   canvas.classList.remove('is-hover')
 })
 
-boot.setProgress(84, 'Settling dust in the light…')
+boot.setProgress(92, 'Catching dust in the neon…')
 
-const clock = new THREE.Clock()
+let last = performance.now()
+let elapsed = 0
 
-function frame() {
-  const dt = Math.min(clock.getDelta(), 0.05)
-  const t = clock.elapsedTime
+function frame(now: number) {
+  const dt = Math.min((now - last) / 1000, 0.05)
+  last = now
+  if (!reducedMotion) elapsed += dt
 
-  updateDust(dust, t)
-  updateMobile(handles, dt, t, reducedMotion, selectedId)
+  updateRgb(elapsed)
+  dust.update(elapsed)
+  updateProps(handles, dt, elapsed)
   rig.update(dt)
+
   renderer.render(scene, rig.camera)
   labelRenderer.render(scene, rig.camera)
   requestAnimationFrame(frame)
 }
 
 await boot.finish()
+last = performance.now()
 requestAnimationFrame(frame)
+
+const deepLink = window.location.hash.slice(1)
+if (deepLink) select(deepLink, true)
+
+// Keep the selection state truthful if the panel is dismissed some other way.
+window.addEventListener('blur', () => {
+  if (!panel.open && selectedId) {
+    selectedId = null
+    setPropActive(handles, null)
+    nav.setActive(null)
+    labels.setSelected(null)
+  }
+})
