@@ -2,10 +2,9 @@
 
 An explorable WebGL bedroom for Ditiro Moabelo's portfolio.
 
-This is **not** a solar-system demo. It's a dusk-lit gamer bedroom, modelled
-entirely in code, where every prop is a real project. Click the bookshelf, the
-battle station, the windowsill, the kitchenette or the nightstand and the camera
-dollies in to that corner with the case study.
+This is **not** a solar-system demo. It's a dusk-lit gamer bedroom where every
+prop is a real project. Click the bookshelf, the battle station, the windowsill,
+the kitchenette or the nightstand and the camera dollies in with the case study.
 
 ## The props are the projects
 
@@ -19,18 +18,23 @@ dollies in to that corner with the case study.
 
 ## What makes it distinct
 
-- Hand-built procedural geometry — no downloaded models, no `GLTFLoader`
-- **Synced RGB lighting rig**: hex wall panels, cove strips, under-desk glow,
-  keyboard keys and PC fans all ride one shared hue cycle
-- Dusk window light plus a neon heart, fairy lights and an RGB corner bar, so
-  the room is lit almost entirely by its own fixtures
-- Soft shadow mapping, drifting dust, and per-prop hover glow with a floor halo
-- Hash deep links (`#helpdesk`) frame a prop instantly for sharing
-- Respects `prefers-reduced-motion` and degrades to a message without WebGL
+- Procedural room as the baseline, with **optional high-quality `.glb` drop-ins**
+- **Poly Haven HDRI** environment lighting (CC0 `studio_small_09`)
+- Synced RGB accents: hex panels, cove strips, keycaps, PC fans
+- Soft shadows, dust, per-prop hover glow, hash deep links (`#helpdesk`)
+- Works on phones / iPads; degrades cleanly without WebGL
+
+## Higher-quality assets (free)
+
+Drop `.glb` files into `public/models/` — see that folder's README for filenames.
+Missing files fall back to the hand-built props, so the project always runs.
+
+Free sources: [Poly Haven](https://polyhaven.com/), [Kenney](https://kenney.nl/assets),
+[Quaternius](https://quaternius.com/), Sketchfab (CC0 filter).
 
 ## Stack
 
-TypeScript · Vite · Three.js · CSS2D labels
+TypeScript · Vite · Three.js · GLTFLoader · RGBELoader · CSS2D labels
 
 ## Run
 

@@ -262,6 +262,7 @@ function createPoster(): THREE.Group {
 
 function createHangingPlant(): THREE.Group {
   const g = new THREE.Group()
+  g.name = 'slot-plant'
   g.position.set(-6.2, 0, -1.4)
 
   g.add(box(0.7, 0.06, 0.7, std('#7A5A6E', 0.7), 0, 0.6, 0))

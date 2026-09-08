@@ -169,6 +169,8 @@ export function updateProps(handles: PropHandle[], dt: number, time: number): vo
 
 function buildBookshelf(project: RoomProject): Built {
   const group = new THREE.Group()
+  const body = new THREE.Group()
+  body.name = 'slot-bookshelf'
   const glow: THREE.MeshStandardMaterial[] = []
 
   const frame = walnut()
@@ -176,20 +178,20 @@ function buildBookshelf(project: RoomProject): Built {
   const height = 2.9
   const depth = 0.5
 
-  group.add(box(0.1, height, depth, frame, -width / 2, height / 2, 0))
-  group.add(box(0.1, height, depth, frame, width / 2, height / 2, 0))
-  group.add(box(width, 0.1, depth, frame, 0, height, 0))
-  group.add(box(width, 0.14, depth, frame, 0, 0.07, 0))
-  group.add(box(width, height, 0.05, std('#3E2E45', 0.9), 0, height / 2, -depth / 2))
+  body.add(box(0.1, height, depth, frame, -width / 2, height / 2, 0))
+  body.add(box(0.1, height, depth, frame, width / 2, height / 2, 0))
+  body.add(box(width, 0.1, depth, frame, 0, height, 0))
+  body.add(box(width, 0.14, depth, frame, 0, 0.07, 0))
+  body.add(box(width, height, 0.05, std('#3E2E45', 0.9), 0, height / 2, -depth / 2))
 
   const shelfYs = [0.78, 1.44, 2.1]
-  shelfYs.forEach((y) => group.add(box(width - 0.1, 0.07, depth - 0.04, frame, 0, y, 0)))
+  shelfYs.forEach((y) => body.add(box(width - 0.1, 0.07, depth - 0.04, frame, 0, y, 0)))
 
   // Shelf-edge LED strips backlight the books.
   ;[0.14, 0.85, 1.51, 2.17].forEach((y, i) => {
     const strip = new THREE.MeshBasicMaterial({ color: '#FF8FD0' })
     registerRgb(strip, 0.2 + i * 0.14, { speed: 0.05, lightness: 0.6 })
-    group.add(box(width - 0.16, 0.035, 0.035, strip, 0, y - 0.045, depth / 2 - 0.06))
+    body.add(box(width - 0.16, 0.035, 0.035, strip, 0, y - 0.045, depth / 2 - 0.06))
   })
 
   // Books are the accent: hovering the shelf lights up every spine.
@@ -215,7 +217,7 @@ function buildBookshelf(project: RoomProject): Built {
         bookMesh.rotation.z = -0.22
         bookMesh.position.x += 0.05
       }
-      group.add(bookMesh)
+      body.add(bookMesh)
 
       x += thickness + 0.012
       i += 1
@@ -223,7 +225,7 @@ function buildBookshelf(project: RoomProject): Built {
   })
 
   // Collectibles: a plushie and a mini arcade cabinet share the top shelf.
-  group.add(createPlushie('#F7A8CE', '#FFD9EA', 0.42, 2.36, 0.02, -0.4, 0.62))
+  body.add(createPlushie('#F7A8CE', '#FFD9EA', 0.42, 2.36, 0.02, -0.4, 0.62))
 
   const cabinet = new THREE.Group()
   cabinet.position.set(0.86, 2.17, 0.02)
@@ -232,15 +234,16 @@ function buildBookshelf(project: RoomProject): Built {
   glow.push(arcadeMat)
   cabinet.add(box(0.17, 0.14, 0.02, arcadeMat, 0, 0.3, 0.1))
   cabinet.add(box(0.19, 0.05, 0.06, std('#E86FB0', 0.5), 0, 0.16, 0.1))
-  group.add(cabinet)
+  body.add(cabinet)
 
   // Flat-stacked books and a mug crowning the shelf.
   const flatMat = glowMat(project.color, project.accent, 0.5)
   glow.push(flatMat)
-  group.add(box(0.72, 0.09, 0.5, flatMat, -0.4, height + 0.1, 0))
-  group.add(box(0.66, 0.08, 0.46, std('#FFF3E6', 0.6), -0.4, height + 0.19, 0))
-  group.add(cyl(0.1, 0.09, 0.19, std('#E86FB0', 0.5), 0.55, height + 0.15, 0.02, 20))
+  body.add(box(0.72, 0.09, 0.5, flatMat, -0.4, height + 0.1, 0))
+  body.add(box(0.66, 0.08, 0.46, std('#FFF3E6', 0.6), -0.4, height + 0.19, 0))
+  body.add(cyl(0.1, 0.09, 0.19, std('#E86FB0', 0.5), 0.55, height + 0.15, 0.02, 20))
 
+  group.add(body)
   return { group, glow }
 }
 
@@ -404,8 +407,9 @@ function buildBattleStation(project: RoomProject): Built {
   })
   group.add(tower)
 
-  // Racing-style gaming chair.
+  // Racing-style gaming chair — replaced automatically if models/chair.glb exists.
   const chair = new THREE.Group()
+  chair.name = 'slot-chair'
   chair.position.set(-0.15, 0, 1.15)
   chair.rotation.y = 0.12
   const chairMat = new THREE.MeshPhysicalMaterial({
@@ -622,20 +626,22 @@ function buildKitchenette(project: RoomProject): Built {
 
 function buildNightstand(project: RoomProject): Built {
   const group = new THREE.Group()
+  const body = new THREE.Group()
+  body.name = 'slot-nightstand'
   const glow: THREE.MeshStandardMaterial[] = []
 
-  group.add(box(0.9, 0.72, 0.7, walnut(), 0, 0.36, 0))
+  body.add(box(0.9, 0.72, 0.7, walnut(), 0, 0.36, 0))
   ;[0.52, 0.22].forEach((y) => {
-    group.add(box(0.8, 0.26, 0.03, std('#A87A96', 0.6), 0, y, 0.36))
+    body.add(box(0.8, 0.26, 0.03, std('#A87A96', 0.6), 0, y, 0.36))
     const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 14, 10), std('#F0DCEA', 0.5))
     knob.position.set(0, y, 0.4)
-    group.add(knob)
+    body.add(knob)
   })
-  group.add(box(0.96, 0.05, 0.76, std('#A87A96', 0.6), 0, 0.74, 0))
+  body.add(box(0.96, 0.05, 0.76, std('#A87A96', 0.6), 0, 0.74, 0))
 
   // Bedside lamp.
-  group.add(cyl(0.11, 0.13, 0.03, std('#A87A96', 0.6), -0.26, 0.78, -0.12, 18))
-  group.add(cyl(0.022, 0.022, 0.3, std(METAL, 0.4, 0.6), -0.26, 0.94, -0.12, 12))
+  body.add(cyl(0.11, 0.13, 0.03, std('#A87A96', 0.6), -0.26, 0.78, -0.12, 18))
+  body.add(cyl(0.022, 0.022, 0.3, std(METAL, 0.4, 0.6), -0.26, 0.94, -0.12, 12))
   const shadeMat = new THREE.MeshStandardMaterial({
     color: '#FFE0EE',
     roughness: 0.6,
@@ -646,7 +652,7 @@ function buildNightstand(project: RoomProject): Built {
   glow.push(shadeMat)
   const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.19, 0.22, 24, 1, true), shadeMat)
   shade.position.set(-0.26, 1.2, -0.12)
-  group.add(shade)
+  body.add(shade)
 
   // First-aid kit — the MediBook accent.
   const kitMat = glowMat('#FFFFFF', project.accent, 0.45)
@@ -662,7 +668,7 @@ function buildNightstand(project: RoomProject): Built {
   const handle = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.014, 8, 18, Math.PI), std(DARK, 0.5))
   handle.position.set(0, 0.16, 0)
   kit.add(handle)
-  group.add(kit)
+  body.add(kit)
 
   // Handheld console charging on the corner.
   const handheld = new THREE.Group()
@@ -674,25 +680,26 @@ function buildNightstand(project: RoomProject): Built {
   handheld.add(box(0.2, 0.15, 0.01, handheldMat, 0, 0, 0.02))
   handheld.add(box(0.07, 0.18, 0.02, std('#E86FB0', 0.5), -0.145, 0, 0.02))
   handheld.add(box(0.07, 0.18, 0.02, std('#8FD9E0', 0.5), 0.145, 0, 0.02))
-  group.add(handheld)
+  body.add(handheld)
 
   // Appointment card and a glass of water.
   const cardLineMat = glowMat(project.color, project.color, 0.5)
   glow.push(cardLineMat)
   const card = box(0.3, 0.02, 0.22, std('#FFF6EA', 0.6), -0.08, 0.78, 0.3)
   card.rotation.y = -0.4
-  group.add(card)
+  body.add(card)
   const cardLine = box(0.2, 0.005, 0.03, cardLineMat, -0.08, 0.792, 0.26)
   cardLine.rotation.y = -0.4
-  group.add(cardLine)
+  body.add(cardLine)
 
-  group.add(cyl(0.055, 0.05, 0.16, new THREE.MeshStandardMaterial({
+  body.add(cyl(0.055, 0.05, 0.16, new THREE.MeshStandardMaterial({
     color: '#DCEBFA',
     roughness: 0.1,
     transparent: true,
     opacity: 0.65,
   }), -0.32, 0.84, 0.24, 18))
 
+  group.add(body)
   return { group, glow }
 }
 

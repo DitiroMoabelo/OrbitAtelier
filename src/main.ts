@@ -6,6 +6,8 @@ import { projects } from './data/projects'
 import { isPhoneUA, isTouch, pixelCap, shadowMapSize, viewSize } from './device'
 import { createDust, createNeonRig, createRoom, createRoomLights } from './scene/room'
 import { createProps, setPropActive, setPropHover, updateProps } from './scene/props'
+import { loadHdriEnvironment } from './scene/environment'
+import { loadOptionalModels } from './scene/modelLoader'
 import { updateRgb } from './scene/rgb'
 import { CameraRig } from './interaction/cameraRig'
 import { PropPicker } from './interaction/picker'
@@ -57,16 +59,25 @@ RectAreaLightUniformsLib.init()
 
 const scene = new THREE.Scene()
 scene.fog = new THREE.Fog(0x1c1618, 18, 42)
-const pmrem = new THREE.PMREMGenerator(renderer)
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-scene.environmentIntensity = 0.38
 
-boot.setProgress(34, 'Painting the walls…')
+boot.setProgress(28, 'Lighting the room…')
+
+const hdriOk = await loadHdriEnvironment(renderer, scene, (ratio) => {
+  boot.setProgress(28 + ratio * 20, 'Lighting the room…')
+})
+if (!hdriOk) {
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+  scene.environmentIntensity = 0.38
+}
+
+boot.setProgress(50, 'Painting the walls…')
 
 const rig = new CameraRig(canvas)
-scene.add(createRoom())
+const room = createRoom()
+scene.add(room)
 
-boot.setProgress(56, 'Plugging in the RGB…')
+boot.setProgress(62, 'Plugging in the RGB…')
 
 const lights = createRoomLights()
 const map = shadowMapSize()
@@ -82,6 +93,13 @@ boot.setProgress(76, 'Setting up the battle station…')
 
 const { root: propsRoot, handles } = createProps(projects)
 scene.add(propsRoot)
+
+const loadedModels = await loadOptionalModels(room, handles, (label) => {
+  boot.setProgress(82, label)
+})
+if (loadedModels.length) {
+  console.info('[The Setup] Loaded GLB assets:', loadedModels.join(', '))
+}
 
 const labelRenderer = createLabelRenderer(app)
 const labels = new PropLabels(handles)
