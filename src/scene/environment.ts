@@ -22,16 +22,15 @@ export async function loadHdriEnvironment(
     if (onProgress) onProgress(1)
     texture.mapping = THREE.EquirectangularReflectionMapping
 
+    const previous = scene.environment
     const env = pmrem.fromEquirectangular(texture).texture
     scene.environment = env
-    // Soft enough that neon accents still read; strong enough for wood/metal.
     scene.environmentIntensity = isPhoneUA ? 0.55 : 0.72
-    // Keep the room clear colour — don't use the HDRI as a full skybox,
-    // or the walls disappear into an outdoor panorama.
     scene.background = null
 
     texture.dispose()
     pmrem.dispose()
+    if (previous && previous !== env) previous.dispose()
     return true
   } catch (error) {
     console.warn('[The Setup] HDRI failed to load, keeping RoomEnvironment fallback.', error)

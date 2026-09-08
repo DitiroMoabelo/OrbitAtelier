@@ -46,7 +46,7 @@ try {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const boot = new BootScreen()
-boot.setProgress(12, 'Unlocking the door…')
+boot.setProgress(18, 'Opening the room…')
 
 renderer.setClearColor(0x1c1618, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelCap()))
@@ -61,31 +61,16 @@ RectAreaLightUniformsLib.init()
 const scene = new THREE.Scene()
 scene.fog = new THREE.Fog(0x1c1618, 18, 42)
 
-boot.setProgress(28, 'Lighting the room…')
+// Instant lighting so the room can appear without waiting on the HDRI.
+const pmrem = new THREE.PMREMGenerator(renderer)
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+scene.environmentIntensity = 0.38
 
-const hdriOk = await loadHdriEnvironment(renderer, scene, (ratio) => {
-  boot.setProgress(28 + ratio * 20, 'Lighting the room…')
-})
-if (!hdriOk) {
-  const pmrem = new THREE.PMREMGenerator(renderer)
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-  scene.environmentIntensity = 0.38
-}
-
-boot.setProgress(50, 'Painting the walls…')
+boot.setProgress(45, 'Building the set…')
 
 const rig = new CameraRig(canvas)
 const room = createRoom()
 scene.add(room)
-
-const surfaces = await upgradeRoomSurfaces(room, (label) => {
-  boot.setProgress(56, label)
-})
-if (surfaces.length) {
-  console.info('[The Setup] Upgraded surfaces:', surfaces.join(', '))
-}
-
-boot.setProgress(62, 'Plugging in the RGB…')
 
 const lights = createRoomLights()
 const map = shadowMapSize()
@@ -97,17 +82,10 @@ scene.add(neon.group)
 const dust = createDust()
 scene.add(dust.points)
 
-boot.setProgress(76, 'Setting up the battle station…')
-
 const { root: propsRoot, handles } = createProps(projects)
 scene.add(propsRoot)
 
-const loadedModels = await loadOptionalModels(room, handles, (label) => {
-  boot.setProgress(82, label)
-})
-if (loadedModels.length) {
-  console.info('[The Setup] Loaded GLB assets:', loadedModels.join(', '))
-}
+boot.setProgress(88, 'Almost ready…')
 
 const labelRenderer = createLabelRenderer(app)
 const labels = new PropLabels(handles)
@@ -190,8 +168,6 @@ canvas.addEventListener('pointerleave', () => {
   canvas.classList.remove('is-hover')
 })
 
-boot.setProgress(92, 'Catching dust in the neon…')
-
 let last = performance.now()
 let elapsed = 0
 
@@ -217,7 +193,20 @@ requestAnimationFrame(frame)
 const deepLink = window.location.hash.slice(1)
 if (deepLink) select(deepLink, true)
 
-// Keep the selection state truthful if the panel is dismissed some other way.
+// Heavy assets stream in after first paint so the wait screen stays short.
+void (async () => {
+  const [hdriOk, surfaces, loadedModels] = await Promise.all([
+    loadHdriEnvironment(renderer, scene),
+    upgradeRoomSurfaces(room),
+    loadOptionalModels(room, handles),
+  ])
+  if (!hdriOk) {
+    /* RoomEnvironment already active */
+  }
+  if (surfaces.length) console.info('[The Setup] Upgraded surfaces:', surfaces.join(', '))
+  if (loadedModels.length) console.info('[The Setup] Loaded GLB assets:', loadedModels.join(', '))
+})()
+
 window.addEventListener('blur', () => {
   if (!panel.open && selectedId) {
     selectedId = null

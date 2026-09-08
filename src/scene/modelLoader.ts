@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { MODEL_SLOTS, type ModelSlot } from '../assets/slots'
 import type { PropHandle } from './props'
 
@@ -23,7 +24,6 @@ function prepareModel(root: THREE.Object3D, castShadow = true): void {
     if (child instanceof THREE.Mesh) {
       child.castShadow = castShadow
       child.receiveShadow = true
-      // Keep glTF materials, but make sure they play with our ACES pipeline.
       const materials = Array.isArray(child.material) ? child.material : [child.material]
       materials.forEach((material) => {
         if (material && 'envMapIntensity' in material) {
@@ -32,25 +32,6 @@ function prepareModel(root: THREE.Object3D, castShadow = true): void {
       })
     }
   })
-}
-
-async function fileExists(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { method: 'HEAD' })
-    if (response.ok) return true
-    // Some hosts reject HEAD — fall through to a tiny range GET.
-  } catch {
-    /* ignore */
-  }
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Range: 'bytes=0-0' },
-    })
-    return response.ok || response.status === 206
-  } catch {
-    return false
-  }
 }
 
 function placeSlot(host: THREE.Object3D, model: THREE.Object3D, slot: ModelSlot): void {
@@ -69,7 +50,6 @@ function placeSlot(host: THREE.Object3D, model: THREE.Object3D, slot: ModelSlot)
   if (slot.targetHeight) scale = fitHeight(model, slot.targetHeight)
   model.scale.setScalar(scale)
 
-  // After scaling, sit floor props on y = 0. Wall props keep their Y.
   if (slot.ground !== false) {
     const box = new THREE.Box3().setFromObject(model)
     if (Number.isFinite(box.min.y)) {
@@ -80,9 +60,45 @@ function placeSlot(host: THREE.Object3D, model: THREE.Object3D, slot: ModelSlot)
   host.add(model)
 }
 
+async function loadOne(
+  loader: GLTFLoader,
+  slot: ModelSlot,
+  roomRoot: THREE.Object3D,
+  byId: Map<string, PropHandle>,
+): Promise<string | null> {
+  const url = assetUrl(`models/${slot.file}`)
+  try {
+    const gltf = await loader.loadAsync(url)
+    const model = gltf.scene
+    model.name = `gltf-${slot.file.replace(/\.glb$/i, '')}`
+    prepareModel(model, slot.castShadow !== false)
+
+    const host =
+      slot.attachTo === 'room' ? roomRoot : byId.get(slot.attachTo)?.group ?? roomRoot
+
+    placeSlot(host, model, slot)
+
+    if (slot.attachTo !== 'room') {
+      const handle = byId.get(slot.attachTo)
+      if (handle) {
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.userData.projectId = handle.project.id
+            handle.picks.push(child)
+          }
+        })
+      }
+    }
+
+    return slot.file
+  } catch {
+    // Missing or corrupt file — keep the procedural fallback.
+    return null
+  }
+}
+
 /**
- * Tries each drop-in GLB. Missing files are ignored so the procedural room
- * always works out of the box.
+ * Loads every drop-in GLB in parallel. Missing files are ignored.
  */
 export async function loadOptionalModels(
   roomRoot: THREE.Object3D,
@@ -90,47 +106,12 @@ export async function loadOptionalModels(
   onProgress?: (label: string) => void,
 ): Promise<string[]> {
   const loader = new GLTFLoader()
-  const loaded: string[] = []
+  loader.setMeshoptDecoder(MeshoptDecoder)
   const byId = new Map(handles.map((handle) => [handle.project.id, handle]))
 
-  for (const slot of MODEL_SLOTS) {
-    const url = assetUrl(`models/${slot.file}`)
-    onProgress?.(`Checking ${slot.file}…`)
-
-    if (!(await fileExists(url))) continue
-
-    try {
-      onProgress?.(`Loading ${slot.file}…`)
-      const gltf = await loader.loadAsync(url)
-      const model = gltf.scene
-      model.name = `gltf-${slot.file.replace(/\.glb$/i, '')}`
-      prepareModel(model, slot.castShadow !== false)
-
-      const host =
-        slot.attachTo === 'room'
-          ? roomRoot
-          : byId.get(slot.attachTo)?.group ?? roomRoot
-
-      placeSlot(host, model, slot)
-
-      // Make the new meshes clickable when attached to a project prop.
-      if (slot.attachTo !== 'room') {
-        const handle = byId.get(slot.attachTo)
-        if (handle) {
-          model.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              child.userData.projectId = handle.project.id
-              handle.picks.push(child)
-            }
-          })
-        }
-      }
-
-      loaded.push(slot.file)
-    } catch (error) {
-      console.warn(`[The Setup] Could not load ${slot.file}`, error)
-    }
-  }
-
-  return loaded
+  onProgress?.('Dressing the room…')
+  const results = await Promise.all(
+    MODEL_SLOTS.map((slot) => loadOne(loader, slot, roomRoot, byId)),
+  )
+  return results.filter((name): name is string => Boolean(name))
 }

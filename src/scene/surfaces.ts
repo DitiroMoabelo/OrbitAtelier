@@ -7,24 +7,6 @@ function assetUrl(path: string): string {
   return `${base}${path.replace(/^\//, '')}`
 }
 
-async function fileExists(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { method: 'HEAD' })
-    if (response.ok) return true
-  } catch {
-    /* ignore */
-  }
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Range: 'bytes=0-0' },
-    })
-    return response.ok || response.status === 206
-  } catch {
-    return false
-  }
-}
-
 async function loadMap(
   loader: THREE.TextureLoader,
   path: string,
@@ -32,20 +14,23 @@ async function loadMap(
   repeatX: number,
   repeatY: number,
 ): Promise<THREE.Texture | null> {
-  const url = assetUrl(path)
-  if (!(await fileExists(url))) return null
-  const tex = await loader.loadAsync(url)
-  tex.wrapS = THREE.RepeatWrapping
-  tex.wrapT = THREE.RepeatWrapping
-  tex.anisotropy = 8
-  tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
-  tex.repeat.set(repeatX, repeatY)
-  tex.needsUpdate = true
-  return tex
+  try {
+    const tex = await loader.loadAsync(assetUrl(path))
+    tex.wrapS = THREE.RepeatWrapping
+    tex.wrapT = THREE.RepeatWrapping
+    tex.anisotropy = 8
+    tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
+    tex.repeat.set(repeatX, repeatY)
+    tex.needsUpdate = true
+    return tex
+  } catch {
+    return null
+  }
 }
 
 /**
  * Swaps procedural floor / rug materials for Poly Haven PBR maps when present.
+ * All maps fetch in parallel.
  */
 export async function upgradeRoomSurfaces(
   roomRoot: THREE.Object3D,
@@ -53,12 +38,19 @@ export async function upgradeRoomSurfaces(
 ): Promise<string[]> {
   const loader = new THREE.TextureLoader()
   const loaded: string[] = []
+  onProgress?.('Texturing surfaces…')
 
-  onProgress?.('Laying the floorboards…')
-  const floorDiff = await loadMap(loader, SURFACE_MAPS.floor.diff, true, 5, 6)
+  const [floorDiff, floorNor, floorRough, carpetDiff, carpetNor, carpetRough] =
+    await Promise.all([
+      loadMap(loader, SURFACE_MAPS.floor.diff, true, 5, 6),
+      loadMap(loader, SURFACE_MAPS.floor.nor, false, 5, 6),
+      loadMap(loader, SURFACE_MAPS.floor.rough, false, 5, 6),
+      loadMap(loader, SURFACE_MAPS.carpet.diff, true, 2.2, 2.2),
+      loadMap(loader, SURFACE_MAPS.carpet.nor, false, 2.2, 2.2),
+      loadMap(loader, SURFACE_MAPS.carpet.rough, false, 2.2, 2.2),
+    ])
+
   if (floorDiff) {
-    const floorNor = await loadMap(loader, SURFACE_MAPS.floor.nor, false, 5, 6)
-    const floorRough = await loadMap(loader, SURFACE_MAPS.floor.rough, false, 5, 6)
     const floor = roomRoot.getObjectByName('slot-floor')
     if (floor instanceof THREE.Mesh) {
       const mat = new THREE.MeshStandardMaterial({
@@ -74,11 +66,7 @@ export async function upgradeRoomSurfaces(
     }
   }
 
-  onProgress?.('Unrolling the rug…')
-  const carpetDiff = await loadMap(loader, SURFACE_MAPS.carpet.diff, true, 2.2, 2.2)
   if (carpetDiff) {
-    const carpetNor = await loadMap(loader, SURFACE_MAPS.carpet.nor, false, 2.2, 2.2)
-    const carpetRough = await loadMap(loader, SURFACE_MAPS.carpet.rough, false, 2.2, 2.2)
     const rug = roomRoot.getObjectByName('slot-rug')
     if (rug) {
       const pile = new THREE.MeshPhysicalMaterial({
@@ -93,7 +81,6 @@ export async function upgradeRoomSurfaces(
       })
       if (carpetNor) pile.normalScale.set(1.1, 1.1)
 
-      // Replace decorative rings with one high-quality disc.
       while (rug.children.length) rug.remove(rug.children[0])
       const disc = new THREE.Mesh(new THREE.CircleGeometry(2.55, 72), pile)
       disc.rotation.x = -Math.PI / 2

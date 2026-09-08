@@ -98,7 +98,7 @@ export class BootScreen {
   async finish() {
     this.setProgress(100, 'Ready')
     this.root.classList.add('is-done')
-    await wait(420)
+    await wait(120)
     this.root.remove()
   }
 }
