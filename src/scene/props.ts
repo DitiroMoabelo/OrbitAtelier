@@ -456,29 +456,26 @@ function buildWindowNook(project: RoomProject): Built {
   const sillMat = std('#E4CADA', 0.7)
   const zWall = ROOM.backZ + 0.16 - project.position[2]
 
-  // Dusk sky beyond the glass — the reason the room is lit by neon.
-  const pane = box(2.0, 1.85, 0.03, new THREE.MeshStandardMaterial({
-    color: '#4E3E7A',
-    roughness: 0.2,
-    emissive: new THREE.Color('#7C5FA8'),
-    emissiveIntensity: 0.85,
-  }), 0, 2.55, zWall + 0.01)
-  group.add(pane)
-
-  const glowBand = box(1.9, 0.7, 0.02, new THREE.MeshBasicMaterial({ color: '#F09BB8' }), 0, 1.95, zWall - 0.02)
-  group.add(glowBand)
-  group.add(box(1.9, 0.32, 0.02, std('#3A2C52', 0.9), 0, 1.72, zWall - 0.05))
-
-  const moon = new THREE.Mesh(new THREE.CircleGeometry(0.2, 32), new THREE.MeshBasicMaterial({ color: '#FFF3D8' }))
-  moon.position.set(-0.55, 3.05, zWall - 0.04)
-  group.add(moon)
-
-  const starMat = new THREE.MeshBasicMaterial({ color: '#FFF6E0' })
-  for (let i = 0; i < 22; i += 1) {
-    const star = new THREE.Mesh(new THREE.CircleGeometry(0.012 + (i % 3) * 0.006, 8), starMat)
-    star.position.set(-0.9 + Math.random() * 1.8, 2.35 + Math.random() * 1.1, zWall - 0.035)
-    group.add(star)
+  // Clear glass so the afternoon sky from atmosphere.ts shows through.
+  const glass = new THREE.MeshPhysicalMaterial({
+    color: '#E8F0FA',
+    roughness: 0.05,
+    metalness: 0,
+    transmission: 0.92,
+    thickness: 0.05,
+    transparent: true,
+    opacity: 0.35,
+    ior: 1.45,
+    side: THREE.DoubleSide,
+  })
+  // Phones struggle with transmission — fall back to subtle tinted glass.
+  if (/iPhone|Android.+Mobile/i.test(navigator.userAgent)) {
+    glass.transmission = 0
+    glass.opacity = 0.18
+    glass.color = new THREE.Color('#D8E6F5')
   }
+  const pane = box(2.0, 1.85, 0.03, glass, 0, 2.55, zWall + 0.01)
+  group.add(pane)
 
   group.add(box(2.3, 0.14, 0.16, frameMat, 0, 3.55, zWall + 0.06))
   group.add(box(2.3, 0.14, 0.16, frameMat, 0, 1.56, zWall + 0.06))

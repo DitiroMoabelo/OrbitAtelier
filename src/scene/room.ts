@@ -11,10 +11,10 @@ export const ROOM = {
   height: 5,
 }
 
-/** Dusk-lit gamer bedroom: real wood and plaster, with RGB as the accent. */
-const WALL = '#6A5A72'
-const WALL_LOWER = '#5C4C64'
-const TRIM = '#E8D5C8'
+/** Dusk-lit gamer bedroom: photographic plaster, real wood, sun-first. */
+const WALL = '#7A6B74'
+const WALL_LOWER = '#6A5B64'
+const TRIM = '#EDE0D4'
 
 function std(color: string, roughness = 0.75, metalness = 0) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness })
@@ -104,10 +104,8 @@ export function createRoom(): THREE.Group {
   floor.receiveShadow = true
   root.add(floor)
 
-  root.add(box(ROOM.halfWidth * 2, ROOM.height, 0.3, wallMat, 0, ROOM.height / 2, ROOM.backZ - 0.15))
-  root.add(box(ROOM.halfWidth * 2, 1.15, 0.06, wainscotMat, 0, 0.575, ROOM.backZ + 0.02))
-  root.add(box(ROOM.halfWidth * 2, 0.09, 0.12, trimMat, 0, 1.16, ROOM.backZ + 0.04))
-  root.add(box(ROOM.halfWidth * 2, 0.16, 0.14, trimMat, 0, 0.08, ROOM.backZ + 0.05))
+  // Back wall with a real window opening so sunlight and sky pass through.
+  root.add(createBackWallWithWindow(wallMat, wainscotMat, trimMat))
 
   const rightX = ROOM.halfWidth
   const midZ = ROOM.backZ + ROOM.depth / 2
@@ -131,6 +129,50 @@ export function createRoom(): THREE.Group {
   root.add(createHangingPlant())
 
   return root
+}
+
+/** Wall slabs around the BirdTrail window so the sky and sun can enter. */
+function createBackWallWithWindow(
+  wallMat: THREE.Material,
+  wainscotMat: THREE.Material,
+  trimMat: THREE.Material,
+): THREE.Group {
+  const g = new THREE.Group()
+  const z = ROOM.backZ - 0.15
+  const winX = 1.35
+  const winW = 2.05
+  const winBottom = 1.55
+  const winTop = 3.55
+  const winH = winTop - winBottom
+  const totalW = ROOM.halfWidth * 2
+  const leftW = winX - winW / 2 + ROOM.halfWidth
+  const rightW = ROOM.halfWidth - (winX + winW / 2)
+
+  // Full-height slabs left and right of the opening.
+  g.add(box(leftW, ROOM.height, 0.3, wallMat, -ROOM.halfWidth + leftW / 2, ROOM.height / 2, z))
+  g.add(box(rightW, ROOM.height, 0.3, wallMat, ROOM.halfWidth - rightW / 2, ROOM.height / 2, z))
+
+  // Lintels above and below the opening.
+  g.add(box(winW, winBottom, 0.3, wallMat, winX, winBottom / 2, z))
+  g.add(box(winW, ROOM.height - winTop, 0.3, wallMat, winX, winTop + (ROOM.height - winTop) / 2, z))
+
+  // Wainscot and trim — skip the window span.
+  g.add(box(leftW, 1.15, 0.06, wainscotMat, -ROOM.halfWidth + leftW / 2, 0.575, ROOM.backZ + 0.02))
+  g.add(box(rightW, 1.15, 0.06, wainscotMat, ROOM.halfWidth - rightW / 2, 0.575, ROOM.backZ + 0.02))
+  if (winBottom > 1.16) {
+    g.add(box(winW, 1.15, 0.06, wainscotMat, winX, 0.575, ROOM.backZ + 0.02))
+  }
+  g.add(box(totalW, 0.09, 0.12, trimMat, 0, 1.16, ROOM.backZ + 0.04))
+  g.add(box(totalW, 0.16, 0.14, trimMat, 0, 0.08, ROOM.backZ + 0.05))
+
+  // Reveal around the opening so the cut feels intentional.
+  const reveal = std('#EDE0D4', 0.4)
+  g.add(box(winW + 0.08, 0.08, 0.18, reveal, winX, winTop + 0.02, ROOM.backZ + 0.02))
+  g.add(box(winW + 0.08, 0.08, 0.18, reveal, winX, winBottom - 0.02, ROOM.backZ + 0.02))
+  g.add(box(0.08, winH + 0.08, 0.18, reveal, winX - winW / 2 - 0.02, winBottom + winH / 2, ROOM.backZ + 0.02))
+  g.add(box(0.08, winH + 0.08, 0.18, reveal, winX + winW / 2 + 0.02, winBottom + winH / 2, ROOM.backZ + 0.02))
+
+  return g
 }
 
 function createRug(): THREE.Group {
@@ -281,7 +323,7 @@ function createHangingPlant(): THREE.Group {
   return g
 }
 
-/** Every glowing fixture in the room: hex panels, cove strips, neon, fairy lights. */
+/** Accent fixtures only — sunlight from atmosphere.ts is the hero. */
 export function createNeonRig(): { group: THREE.Group; lights: THREE.PointLight[] } {
   const group = new THREE.Group()
   group.name = 'neon'
@@ -292,14 +334,13 @@ export function createNeonRig(): { group: THREE.Group; lights: THREE.PointLight[
   group.add(createNeonHeart())
   group.add(createFairyLights())
   group.add(createCornerLamp())
+  group.add(createPendantLamp())
 
-  const pinkGlow = new THREE.PointLight('#E8A0C0', 14, 11, 2)
+  const pinkGlow = new THREE.PointLight('#E8A0C0', 5, 8, 2)
   pinkGlow.position.set(-3.4, 2.6, ROOM.backZ + 1.2)
-  const violetGlow = new THREE.PointLight('#B8A0D8', 12, 11, 2)
+  const violetGlow = new THREE.PointLight('#B8A0D8', 4, 8, 2)
   violetGlow.position.set(3.4, 2.9, ROOM.backZ + 1.2)
-  const cyanGlow = new THREE.PointLight('#A8D0D8', 8, 9, 2)
-  cyanGlow.position.set(-6.2, 1.6, 0.6)
-  lights.push(pinkGlow, violetGlow, cyanGlow)
+  lights.push(pinkGlow, violetGlow)
   lights.forEach((light) => group.add(light))
 
   return { group, lights }
@@ -326,11 +367,11 @@ function createHexPanels(): THREE.Group {
       roughness: 0.22,
       metalness: 0.08,
       emissive: new THREE.Color('#E8A0C4'),
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 0.45,
       clearcoat: 0.4,
       clearcoatRoughness: 0.3,
     })
-    registerRgb(material, i * 0.11, { speed: 0.045, saturation: 0.48, lightness: 0.58 })
+    registerRgb(material, i * 0.11, { speed: 0.02, saturation: 0.35, lightness: 0.55 })
 
     const panel = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.05, 6), material)
     panel.rotation.x = Math.PI / 2
@@ -449,39 +490,12 @@ function createCornerLamp(): THREE.Group {
   return g
 }
 
-/** Dusk light coming through the window, kept low so the neon reads. */
+/** Dusk light — kept for API compatibility; prefer createSunRig from atmosphere. */
 export function createRoomLights(): { group: THREE.Group; sun: THREE.DirectionalLight } {
   const group = new THREE.Group()
-
-  const sun = new THREE.DirectionalLight('#F2E4D4', 1.55)
-  sun.position.set(-4.5, 9, 6)
-  sun.castShadow = true
-  const mapSize = isPhoneUA ? 512 : 2048
-  sun.shadow.mapSize.set(mapSize, mapSize)
-  sun.shadow.camera.near = 1
-  sun.shadow.camera.far = 30
-  sun.shadow.camera.left = -11
-  sun.shadow.camera.right = 11
-  sun.shadow.camera.top = 11
-  sun.shadow.camera.bottom = -6
-  sun.shadow.bias = -0.0004
-  sun.shadow.normalBias = 0.03
+  const sun = new THREE.DirectionalLight('#FFE2B8', 0.01)
+  sun.visible = false
   group.add(sun)
-
-  group.add(new THREE.HemisphereLight('#F0E6DC', '#6B5348', 0.42))
-  group.add(new THREE.AmbientLight('#D8C8BC', 0.18))
-
-  const overhead = new THREE.PointLight('#FFE2C4', 12, 9, 2)
-  overhead.position.set(0.3, 3.4, -0.4)
-  group.add(overhead)
-
-  const windowFill = new THREE.RectAreaLight('#C8D4F0', 6, 2.1, 1.9)
-  windowFill.position.set(1.35, 2.55, ROOM.backZ + 0.3)
-  windowFill.lookAt(1.35, 2.2, 0)
-  group.add(windowFill)
-
-  group.add(createPendantLamp())
-
   return { group, sun }
 }
 
