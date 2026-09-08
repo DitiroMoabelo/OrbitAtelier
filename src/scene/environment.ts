@@ -25,7 +25,7 @@ export async function loadHdriEnvironment(
     const previous = scene.environment
     const env = pmrem.fromEquirectangular(texture).texture
     scene.environment = env
-    scene.environmentIntensity = isPhoneUA ? 0.55 : 0.72
+    scene.environmentIntensity = isPhoneUA ? 0.42 : 0.52
     scene.background = null
 
     texture.dispose()

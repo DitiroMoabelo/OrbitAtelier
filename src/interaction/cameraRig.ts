@@ -5,8 +5,8 @@ import { isPortrait, isTouch } from '../device'
 export class CameraRig {
   readonly camera: THREE.PerspectiveCamera
   readonly controls: OrbitControls
-  private readonly homePos = new THREE.Vector3(0.5, 2.8, 9.3)
-  private readonly homeTarget = new THREE.Vector3(0.35, 1.55, -1.8)
+  private readonly homePos = new THREE.Vector3(-0.2, 1.95, 4.6)
+  private readonly homeTarget = new THREE.Vector3(-0.8, 1.4, -2.4)
   private blending = false
   private blend = 0
   private readonly fromPos = new THREE.Vector3()
@@ -38,29 +38,29 @@ export class CameraRig {
     this.camera.updateProjectionMatrix()
   }
 
-  /** Pulls the doorway view back on portrait so the whole room still fits. */
+  /** Editorial desk-biased framing — closer, lower FOV, less dollhouse. */
   private applyHomeLayout(width: number, height: number) {
     const portrait = height > width * 1.05
     const narrow = width < 900
 
     if (portrait) {
-      this.homePos.set(0.15, 2.45, 8.15)
-      this.homeTarget.set(0.1, 1.35, -1.6)
-      this.camera.fov = 52
-      this.controls.minDistance = 2.2
-      this.controls.maxDistance = 16
-    } else if (narrow) {
-      this.homePos.set(0.45, 2.85, 10.2)
-      this.homeTarget.set(0.25, 1.5, -1.5)
-      this.camera.fov = 48
+      this.homePos.set(0.05, 1.85, 5.4)
+      this.homeTarget.set(-0.2, 1.35, -2.0)
+      this.camera.fov = 46
       this.controls.minDistance = 2.0
-      this.controls.maxDistance = 16
+      this.controls.maxDistance = 12
+    } else if (narrow) {
+      this.homePos.set(-0.1, 1.95, 5.2)
+      this.homeTarget.set(-0.6, 1.4, -2.2)
+      this.camera.fov = 40
+      this.controls.minDistance = 1.8
+      this.controls.maxDistance = 13
     } else {
-      this.homePos.set(0.5, 2.8, 9.3)
-      this.homeTarget.set(0.35, 1.55, -1.8)
-      this.camera.fov = 42
-      this.controls.minDistance = 1.6
-      this.controls.maxDistance = 15
+      this.homePos.set(-0.2, 1.95, 4.6)
+      this.homeTarget.set(-0.8, 1.4, -2.4)
+      this.camera.fov = 36
+      this.controls.minDistance = 1.5
+      this.controls.maxDistance = 12
     }
   }
 

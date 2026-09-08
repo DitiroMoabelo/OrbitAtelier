@@ -53,18 +53,18 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelCap()))
 renderer.setSize(window.innerWidth, window.innerHeight, false)
 renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.05
+renderer.toneMappingExposure = 1.0
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 RectAreaLightUniformsLib.init()
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.Fog(0x1c1618, 18, 42)
+scene.fog = new THREE.Fog(0x1c1618, 11, 26)
 
 // Instant lighting so the room can appear without waiting on the HDRI.
 const pmrem = new THREE.PMREMGenerator(renderer)
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-scene.environmentIntensity = 0.38
+scene.environmentIntensity = 0.28
 
 boot.setProgress(45, 'Building the set…')
 

@@ -147,7 +147,7 @@ export function setPropActive(handles: PropHandle[], id: string | null): void {
   })
 }
 
-export function updateProps(handles: PropHandle[], dt: number, time: number): void {
+export function updateProps(handles: PropHandle[], dt: number, _time: number): void {
   const ease = Math.min(1, dt * 7)
 
   handles.forEach((handle) => {
@@ -157,13 +157,12 @@ export function updateProps(handles: PropHandle[], dt: number, time: number): vo
     handle.group.userData.lit = lit
 
     handle.glow.forEach((material) => {
-      material.emissiveIntensity = 0.12 + lit * 1.35
+      material.emissiveIntensity = 0.06 + lit * 0.32
     })
 
     const ringMat = handle.ring.material as THREE.MeshBasicMaterial
-    ringMat.opacity = lit * 0.55
-    handle.ring.scale.setScalar(1 + Math.sin(time * 2.4) * 0.03 * lit)
-    handle.group.position.y = lit * 0.035
+    ringMat.opacity = lit * 0.18
+    handle.ring.scale.setScalar(1 + lit * 0.04)
   })
 }
 
@@ -193,8 +192,13 @@ function buildBookshelf(project: RoomProject): Built {
   accents.name = 'slot-shelf-accents'
 
   ;[0.14, 0.85, 1.51, 2.17].forEach((y, i) => {
-    const strip = new THREE.MeshBasicMaterial({ color: '#FF8FD0' })
-    registerRgb(strip, 0.2 + i * 0.14, { speed: 0.05, lightness: 0.6 })
+    const strip = new THREE.MeshStandardMaterial({
+      color: '#FF8FD0',
+      emissive: new THREE.Color('#FF8FD0'),
+      emissiveIntensity: 0.7,
+      roughness: 0.45,
+    })
+    registerRgb(strip, 0.2 + i * 0.14, { speed: 0.22, lightness: 0.58, tone: 'pink' })
     accents.add(box(width - 0.16, 0.035, 0.035, strip, 0, y - 0.045, depth / 2 - 0.06))
   })
 
@@ -265,14 +269,23 @@ function buildBattleStation(project: RoomProject): Built {
   group.add(desk)
 
   // Under-desk glow strip.
-  const underMat = new THREE.MeshBasicMaterial({ color: '#B98BD6' })
-  registerRgb(underMat, 0.62, { speed: 0.05, lightness: 0.6 })
+  const underMat = new THREE.MeshStandardMaterial({
+    color: '#B98BD6',
+    emissive: new THREE.Color('#B98BD6'),
+    emissiveIntensity: 0.7,
+    roughness: 0.45,
+  })
+  registerRgb(underMat, 0.62, { speed: 0.25, lightness: 0.58, tone: 'lilac' })
   group.add(box(2.4, 0.04, 0.04, underMat, 0, 0.7, 0.56))
 
-  // Deskmat with an RGB border.
+  // Deskmat with a soft accent border.
   group.add(box(1.9, 0.014, 0.72, std('#3E2E45', 0.85), 0.05, 0.792, 0.14))
-  const matEdge = new THREE.MeshBasicMaterial({ color: '#FF8FD0' })
-  registerRgb(matEdge, 0.05, { speed: 0.06, lightness: 0.62 })
+  const matEdge = new THREE.MeshStandardMaterial({
+    color: '#C07090',
+    emissive: new THREE.Color('#FF8FD0'),
+    emissiveIntensity: 0.35,
+    roughness: 0.55,
+  })
   group.add(box(1.94, 0.008, 0.76, matEdge, 0.05, 0.788, 0.14))
 
   // Main monitor — replaced by models/monitor.glb when present.
@@ -294,8 +307,12 @@ function buildBattleStation(project: RoomProject): Built {
     mainMonitor.add(box(0.1, 0.05, 0.01, statusMat, 0.07, 1.9 - i * 0.14, -0.228))
   }
 
-  const bias = new THREE.MeshBasicMaterial({ color: '#FF7FC4' })
-  registerRgb(bias, 0.3, { speed: 0.045, lightness: 0.6 })
+  const bias = new THREE.MeshStandardMaterial({
+    color: '#FF7FC4',
+    emissive: new THREE.Color('#FF7FC4'),
+    emissiveIntensity: 0.45,
+    roughness: 0.5,
+  })
   mainMonitor.add(box(1.5, 0.05, 0.05, bias, -0.4, 2.1, -0.31))
   group.add(mainMonitor)
 
@@ -314,28 +331,51 @@ function buildBattleStation(project: RoomProject): Built {
   sideMonitor.add(sideScreen)
   group.add(sideMonitor)
 
-  // Mechanical keyboard with per-key RGB.
+  // Mechanical keyboard — static keycaps, one underglow accent.
   group.add(box(0.94, 0.05, 0.34, std('#3E2E45', 0.6), -0.1, 0.825, 0.22))
-  const keyMats = ['#FF7FC4', '#B98BD6', '#8FD9E0', '#FFD9A0'].map((color, i) => {
-    const material = new THREE.MeshBasicMaterial({ color })
-    registerRgb(material, i * 0.16, { speed: 0.09, lightness: 0.62 })
-    return material
+  const keyCap = std('#F0DCE6', 0.55)
+  const keyAccent = new THREE.MeshStandardMaterial({
+    color: '#E8A0C0',
+    emissive: new THREE.Color('#FF8FD0'),
+    emissiveIntensity: 0.25,
+    roughness: 0.5,
   })
   for (let row = 0; row < 4; row += 1) {
     for (let col = 0; col < 13; col += 1) {
-      const key = box(0.055, 0.018, 0.055, keyMats[(row + col) % keyMats.length], -0.52 + col * 0.068, 0.858, 0.11 + row * 0.062)
+      const isAccent = row === 0 && (col === 0 || col === 12)
+      const key = box(
+        0.055,
+        0.018,
+        0.055,
+        isAccent ? keyAccent : keyCap,
+        -0.52 + col * 0.068,
+        0.858,
+        0.11 + row * 0.062,
+      )
       group.add(key)
     }
   }
+  const kbGlow = new THREE.MeshStandardMaterial({
+    color: '#FF7FC4',
+    emissive: new THREE.Color('#FF7FC4'),
+    emissiveIntensity: 0.65,
+    roughness: 0.4,
+  })
+  registerRgb(kbGlow, 0.1, { speed: 0.3, lightness: 0.6, tone: 'pink' })
+  group.add(box(0.88, 0.012, 0.02, kbGlow, -0.1, 0.812, 0.38))
 
-  // Mouse with a glowing scroll wheel.
+  // Mouse with a soft accent scroll wheel.
   const mouse = new THREE.Mesh(new THREE.SphereGeometry(0.075, 18, 14), std('#3E2E45', 0.5))
   mouse.scale.set(0.75, 0.55, 1.15)
   mouse.position.set(0.62, 0.825, 0.26)
   mouse.castShadow = true
   group.add(mouse)
-  const wheelMat = new THREE.MeshBasicMaterial({ color: '#FF7FC4' })
-  registerRgb(wheelMat, 0.45, { speed: 0.08, lightness: 0.66 })
+  const wheelMat = new THREE.MeshStandardMaterial({
+    color: '#FF7FC4',
+    emissive: new THREE.Color('#FF7FC4'),
+    emissiveIntensity: 0.55,
+    roughness: 0.4,
+  })
   group.add(box(0.016, 0.02, 0.04, wheelMat, 0.62, 0.865, 0.21))
 
   // Cat-ear headset on a stand.
@@ -354,8 +394,12 @@ function buildBattleStation(project: RoomProject): Built {
     const cup = cyl(0.085, 0.085, 0.06, headsetMat, 0, 0.44, z, 20)
     cup.rotation.x = Math.PI / 2
     stand.add(cup)
-    const ringMat = new THREE.MeshBasicMaterial({ color: '#FF7FC4' })
-    registerRgb(ringMat, 0.72, { speed: 0.07, lightness: 0.64 })
+    const ringMat = new THREE.MeshStandardMaterial({
+      color: '#FF7FC4',
+      emissive: new THREE.Color('#FF7FC4'),
+      emissiveIntensity: 0.4,
+      roughness: 0.45,
+    })
     const halo = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.012, 8, 22), ringMat)
     halo.position.set(0, 0.44, z + (z > 0 ? 0.032 : -0.032))
     halo.rotation.y = Math.PI / 2
@@ -366,9 +410,7 @@ function buildBattleStation(project: RoomProject): Built {
     ear.position.set(0, 0.61, z)
     ear.rotation.x = z > 0 ? 0.3 : -0.3
     stand.add(ear)
-    const earMat = new THREE.MeshBasicMaterial({ color: '#FF9FCB' })
-    registerRgb(earMat, 0.88, { speed: 0.07, lightness: 0.68 })
-    const inner = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.065, 14), earMat)
+    const inner = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.065, 14), std('#FF9FCB', 0.55))
     inner.position.set(0.028, 0.615, z)
     inner.rotation.x = z > 0 ? 0.3 : -0.3
     stand.add(inner)
@@ -389,12 +431,16 @@ function buildBattleStation(project: RoomProject): Built {
   capsule.rotation.z = 0.35
   capsule.castShadow = true
   mic.add(capsule)
-  const micLedMat = new THREE.MeshBasicMaterial({ color: '#8FD9E0' })
-  registerRgb(micLedMat, 0.52, { speed: 0.07, lightness: 0.66 })
+  const micLedMat = new THREE.MeshStandardMaterial({
+    color: '#8FD9E0',
+    emissive: new THREE.Color('#8FD9E0'),
+    emissiveIntensity: 0.7,
+    roughness: 0.4,
+  })
   mic.add(cyl(0.022, 0.022, 0.012, micLedMat, -0.4, 0.68, 0, 12))
   group.add(mic)
 
-  // PC tower with a glass side and RGB fans.
+  // PC tower with a glass side and fixed accent fans.
   const tower = new THREE.Group()
   tower.position.set(1.55, 0, -0.25)
   tower.rotation.y = -0.22
@@ -407,9 +453,13 @@ function buildBattleStation(project: RoomProject): Built {
     opacity: 0.35,
   }), -0.255, 0.53, 0)
   tower.add(glass)
-  ;[0.28, 0.55, 0.82].forEach((y, i) => {
-    const fanMat = new THREE.MeshBasicMaterial({ color: '#FF7FC4' })
-    registerRgb(fanMat, 0.18 + i * 0.22, { speed: 0.08, lightness: 0.62 })
+  ;[0.28, 0.55, 0.82].forEach((y) => {
+    const fanMat = new THREE.MeshStandardMaterial({
+      color: '#FF7FC4',
+      emissive: new THREE.Color('#FF7FC4'),
+      emissiveIntensity: 0.55,
+      roughness: 0.4,
+    })
     const fan = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.022, 10, 26), fanMat)
     fan.position.set(-0.23, y, 0.02)
     fan.rotation.y = Math.PI / 2
@@ -470,32 +520,34 @@ function buildWindowNook(project: RoomProject): Built {
   const sillMat = std('#E4CADA', 0.7)
   const zWall = ROOM.backZ + 0.16 - project.position[2]
 
-  // Frame + dusk pane — replaced by models/window.glb when present.
+  // Frame + dusk glass — replaced by models/window.glb when present.
   const shell = new THREE.Group()
   shell.name = 'slot-window'
 
-  const pane = box(2.0, 1.85, 0.03, new THREE.MeshStandardMaterial({
-    color: '#4E3E7A',
-    roughness: 0.2,
-    emissive: new THREE.Color('#7C5FA8'),
-    emissiveIntensity: 0.85,
-  }), 0, 2.55, zWall + 0.01)
+  const pane = box(
+    2.0,
+    1.85,
+    0.03,
+    new THREE.MeshPhysicalMaterial({
+      color: '#2A2438',
+      roughness: 0.12,
+      metalness: 0.05,
+      transmission: 0.35,
+      thickness: 0.4,
+      transparent: true,
+      opacity: 0.92,
+      emissive: new THREE.Color('#3A2E58'),
+      emissiveIntensity: 0.18,
+    }),
+    0,
+    2.55,
+    zWall + 0.01,
+  )
   shell.add(pane)
 
-  const glowBand = box(1.9, 0.7, 0.02, new THREE.MeshBasicMaterial({ color: '#F09BB8' }), 0, 1.95, zWall - 0.02)
-  shell.add(glowBand)
-  shell.add(box(1.9, 0.32, 0.02, std('#3A2C52', 0.9), 0, 1.72, zWall - 0.05))
-
-  const moon = new THREE.Mesh(new THREE.CircleGeometry(0.2, 32), new THREE.MeshBasicMaterial({ color: '#FFF3D8' }))
-  moon.position.set(-0.55, 3.05, zWall - 0.04)
-  shell.add(moon)
-
-  const starMat = new THREE.MeshBasicMaterial({ color: '#FFF6E0' })
-  for (let i = 0; i < 22; i += 1) {
-    const star = new THREE.Mesh(new THREE.CircleGeometry(0.012 + (i % 3) * 0.006, 8), starMat)
-    star.position.set(-0.9 + Math.random() * 1.8, 2.35 + Math.random() * 1.1, zWall - 0.035)
-    shell.add(star)
-  }
+  // Soft dusk gradient band behind the glass (not a cartoon sky sticker).
+  shell.add(box(1.92, 0.85, 0.015, std('#1E1830', 0.95), 0, 2.15, zWall - 0.04))
+  shell.add(box(1.92, 0.55, 0.015, std('#342848', 0.92), 0, 2.85, zWall - 0.04))
 
   shell.add(box(2.3, 0.14, 0.16, frameMat, 0, 3.55, zWall + 0.06))
   shell.add(box(2.3, 0.14, 0.16, frameMat, 0, 1.56, zWall + 0.06))
@@ -579,8 +631,12 @@ function buildKitchenette(project: RoomProject): Built {
   shell.add(box(2.42, 0.09, 0.78, std('#E8DDD2', 0.38), 0, 0.92, 0))
   shell.add(box(2.3, 1.1, 0.05, std('#D4C0C8', 0.78), 0, 1.5, -0.34))
 
-  const underMat = new THREE.MeshBasicMaterial({ color: '#8FD9E0' })
-  registerRgb(underMat, 0.4, { speed: 0.05, lightness: 0.62 })
+  const underMat = new THREE.MeshStandardMaterial({
+    color: '#8FD9E0',
+    emissive: new THREE.Color('#8FD9E0'),
+    emissiveIntensity: 0.55,
+    roughness: 0.45,
+  })
   shell.add(box(2.1, 0.035, 0.035, underMat, 0, 0.96, 0.34))
 
   ;[-0.56, 0.56].forEach((x) => {

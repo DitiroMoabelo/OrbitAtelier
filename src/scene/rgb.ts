@@ -2,37 +2,69 @@ import * as THREE from 'three'
 
 type RgbEntry = {
   material: THREE.MeshStandardMaterial | THREE.MeshBasicMaterial
-  /** Hue offset in turns, so strips and panels never land on the same colour. */
-  offset: number
+  /** Fixed hue in turns (0–1). */
+  hue: number
   saturation: number
   lightness: number
+  /** Soft brightness pulse speed. */
   speed: number
+  phase: number
 }
 
 const entries: RgbEntry[] = []
 
-/** Registers a material to ride the shared RGB cycle used across the room. */
+/** Palette accents — locked hues, subtle pulse only (no rainbow cycle). */
+const HUES = {
+  pink: 0.92,
+  lilac: 0.78,
+  mint: 0.48,
+  warm: 0.08,
+} as const
+
+/** Registers a material for a restrained accent pulse. */
 export function registerRgb(
   material: THREE.MeshStandardMaterial | THREE.MeshBasicMaterial,
   offset = 0,
-  options: { saturation?: number; lightness?: number; speed?: number } = {},
+  options: {
+    saturation?: number
+    lightness?: number
+    speed?: number
+    /** 'pink' | 'lilac' | 'mint' | 'warm' — defaults by offset band. */
+    tone?: keyof typeof HUES
+  } = {},
 ): void {
+  const tone =
+    options.tone ??
+    (offset < 0.33 ? 'pink' : offset < 0.66 ? 'lilac' : 'mint')
+
   entries.push({
     material,
-    offset,
-    saturation: options.saturation ?? 0.52,
-    lightness: options.lightness ?? 0.55,
-    speed: options.speed ?? 0.055,
+    hue: HUES[tone],
+    saturation: options.saturation ?? 0.42,
+    lightness: options.lightness ?? 0.58,
+    speed: options.speed ?? 0.35,
+    phase: offset * Math.PI * 2,
   })
+
+  // Set the locked color immediately so first frame isn't wrong.
+  material.color.setHSL(HUES[tone], options.saturation ?? 0.42, options.lightness ?? 0.58)
+  const standard = material as THREE.MeshStandardMaterial
+  if (standard.emissive) {
+    standard.emissive.setHSL(HUES[tone], options.saturation ?? 0.42, options.lightness ?? 0.58)
+  }
 }
 
 export function updateRgb(time: number): void {
   for (const entry of entries) {
-    const hue = (time * entry.speed + entry.offset) % 1
-    entry.material.color.setHSL(hue, entry.saturation, entry.lightness)
+    const pulse = 0.5 + 0.5 * Math.sin(time * entry.speed + entry.phase)
+    const lightness = entry.lightness + (pulse - 0.5) * 0.06
+    entry.material.color.setHSL(entry.hue, entry.saturation, lightness)
     const standard = entry.material as THREE.MeshStandardMaterial
     if (standard.emissive) {
-      standard.emissive.setHSL(hue, entry.saturation, entry.lightness)
+      standard.emissive.setHSL(entry.hue, entry.saturation, lightness)
+      if ('emissiveIntensity' in standard) {
+        standard.emissiveIntensity = 0.55 + pulse * 0.35
+      }
     }
   }
 }

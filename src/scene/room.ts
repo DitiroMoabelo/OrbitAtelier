@@ -301,11 +301,11 @@ export function createNeonRig(): { group: THREE.Group; lights: THREE.PointLight[
   group.add(createFairyLights())
   group.add(createCornerLamp())
 
-  const pinkGlow = new THREE.PointLight('#E8A0C0', 14, 11, 2)
+  const pinkGlow = new THREE.PointLight('#E8A0C0', 3.2, 7, 2)
   pinkGlow.position.set(-3.4, 2.6, ROOM.backZ + 1.2)
-  const violetGlow = new THREE.PointLight('#B8A0D8', 12, 11, 2)
+  const violetGlow = new THREE.PointLight('#B8A0D8', 2.8, 7, 2)
   violetGlow.position.set(3.4, 2.9, ROOM.backZ + 1.2)
-  const cyanGlow = new THREE.PointLight('#A8D0D8', 8, 9, 2)
+  const cyanGlow = new THREE.PointLight('#A8D0D8', 2.2, 6, 2)
   cyanGlow.position.set(-6.2, 1.6, 0.6)
   lights.push(pinkGlow, violetGlow, cyanGlow)
   lights.forEach((light) => group.add(light))
@@ -331,14 +331,19 @@ function createHexPanels(): THREE.Group {
   layout.forEach(([dx, dy], i) => {
     const material = new THREE.MeshPhysicalMaterial({
       color: '#E8C0D4',
-      roughness: 0.22,
-      metalness: 0.08,
+      roughness: 0.35,
+      metalness: 0.05,
       emissive: new THREE.Color('#E8A0C4'),
-      emissiveIntensity: 0.85,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.3,
+      emissiveIntensity: 0.55,
+      clearcoat: 0.25,
+      clearcoatRoughness: 0.4,
     })
-    registerRgb(material, i * 0.11, { speed: 0.045, saturation: 0.48, lightness: 0.58 })
+    registerRgb(material, i * 0.11, {
+      speed: 0.28,
+      saturation: 0.38,
+      lightness: 0.56,
+      tone: i % 3 === 0 ? 'pink' : i % 3 === 1 ? 'lilac' : 'mint',
+    })
 
     const panel = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.05, 6), material)
     panel.rotation.x = Math.PI / 2
@@ -352,16 +357,31 @@ function createHexPanels(): THREE.Group {
 function createCoveStrips(): THREE.Group {
   const g = new THREE.Group()
 
-  const back = new THREE.MeshBasicMaterial({ color: '#FF7FC4' })
-  registerRgb(back, 0.15, { speed: 0.04, lightness: 0.66 })
+  const back = new THREE.MeshStandardMaterial({
+    color: '#FF7FC4',
+    emissive: new THREE.Color('#FF7FC4'),
+    emissiveIntensity: 0.9,
+    roughness: 0.45,
+  })
+  registerRgb(back, 0.15, { speed: 0.22, lightness: 0.62, tone: 'pink' })
   g.add(box(ROOM.halfWidth * 2 - 0.4, 0.07, 0.07, back, 0, 4.42, ROOM.backZ + 0.14))
 
-  const side = new THREE.MeshBasicMaterial({ color: '#9B7BE8' })
-  registerRgb(side, 0.55, { speed: 0.04, lightness: 0.66 })
+  const side = new THREE.MeshStandardMaterial({
+    color: '#9B7BE8',
+    emissive: new THREE.Color('#9B7BE8'),
+    emissiveIntensity: 0.75,
+    roughness: 0.45,
+  })
+  registerRgb(side, 0.55, { speed: 0.2, lightness: 0.58, tone: 'lilac' })
   g.add(box(0.07, 0.07, ROOM.depth - 0.4, side, ROOM.halfWidth - 0.14, 4.42, ROOM.backZ + ROOM.depth / 2))
 
-  const skirt = new THREE.MeshBasicMaterial({ color: '#7FE3F0' })
-  registerRgb(skirt, 0.8, { speed: 0.05, lightness: 0.62 })
+  const skirt = new THREE.MeshStandardMaterial({
+    color: '#7FE3F0',
+    emissive: new THREE.Color('#7FE3F0'),
+    emissiveIntensity: 0.55,
+    roughness: 0.5,
+  })
+  // Skirt stays mint, no register — less motion noise near the floor.
   g.add(box(ROOM.halfWidth * 2 - 0.6, 0.045, 0.045, skirt, 0, 0.19, ROOM.backZ + 0.13))
 
   return g
@@ -379,7 +399,12 @@ function createNeonHeart(): THREE.Group {
   shape.bezierCurveTo(0.26, -0.16, 0.66, 0.16, 0.38, 0.4)
   shape.bezierCurveTo(0.18, 0.56, 0, 0.4, 0, 0.22)
 
-  const tubeMat = new THREE.MeshBasicMaterial({ color: '#FF5FA8' })
+  const tubeMat = new THREE.MeshStandardMaterial({
+    color: '#FF5FA8',
+    emissive: new THREE.Color('#FF5FA8'),
+    emissiveIntensity: 1.4,
+    roughness: 0.35,
+  })
   const tube = new THREE.Mesh(
     new THREE.ExtrudeGeometry(shape, { depth: 0.07, bevelEnabled: false, curveSegments: 24 }),
     tubeMat,
@@ -391,16 +416,16 @@ function createNeonHeart(): THREE.Group {
     new THREE.MeshBasicMaterial({
       color: '#FF9FCB',
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.16,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     }),
   )
-  halo.scale.set(1.28, 1.28, 1)
+  halo.scale.set(1.22, 1.22, 1)
   halo.position.set(0, 0.02, 0.01)
   g.add(halo)
 
-  const heartLight = new THREE.PointLight('#FF5FA8', 10, 6, 2)
+  const heartLight = new THREE.PointLight('#FF5FA8', 3.5, 5, 2)
   heartLight.position.set(0, 0, 0.6)
   g.add(heartLight)
 
@@ -410,8 +435,13 @@ function createNeonHeart(): THREE.Group {
 /** Warm fairy-light garland sagging across the back wall. */
 function createFairyLights(): THREE.Group {
   const g = new THREE.Group()
-  const bulbMat = new THREE.MeshBasicMaterial({ color: '#FFE0B0' })
-  const wireMat = new THREE.LineBasicMaterial({ color: '#7A5A6E', transparent: true, opacity: 0.6 })
+  const bulbMat = new THREE.MeshStandardMaterial({
+    color: '#FFE0B0',
+    emissive: new THREE.Color('#FFD9A0'),
+    emissiveIntensity: 1.1,
+    roughness: 0.55,
+  })
+  const wireMat = new THREE.LineBasicMaterial({ color: '#7A5A6E', transparent: true, opacity: 0.45 })
 
   const spans: Array<[number, number]> = [
     [-6.4, -2.1],
@@ -432,7 +462,7 @@ function createFairyLights(): THREE.Group {
 
     for (let i = 2; i < steps - 1; i += 3) {
       const p = points[i]
-      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), bulbMat)
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 8), bulbMat)
       bulb.position.set(p.x, p.y - 0.06, p.z)
       g.add(bulb)
     }
@@ -441,7 +471,7 @@ function createFairyLights(): THREE.Group {
   return g
 }
 
-/** RGB floor lamp bar in the left corner. */
+/** Floor lamp bar in the left corner. */
 function createCornerLamp(): THREE.Group {
   const g = new THREE.Group()
   g.position.set(-6.3, 0, 1.4)
@@ -449,19 +479,23 @@ function createCornerLamp(): THREE.Group {
   g.add(cyl(0.24, 0.3, 0.06, std('#2E2233', 0.6), 0, 0.03, 0, 22))
   g.add(cyl(0.05, 0.05, 2.5, std('#2E2233', 0.5, 0.3), 0, 1.28, 0, 14))
 
-  const barMat = new THREE.MeshBasicMaterial({ color: '#7FE3F0' })
-  registerRgb(barMat, 0.35, { speed: 0.06, lightness: 0.64 })
+  const barMat = new THREE.MeshStandardMaterial({
+    color: '#A8D0D8',
+    emissive: new THREE.Color('#7FE3F0'),
+    emissiveIntensity: 0.85,
+    roughness: 0.4,
+  })
   g.add(box(0.07, 2.3, 0.07, barMat, 0.055, 1.35, 0.055))
   g.add(box(0.07, 2.3, 0.07, barMat, -0.055, 1.35, -0.055))
 
   return g
 }
 
-/** Dusk light coming through the window, kept low so the neon reads. */
+/** Dusk light coming through the window, kept restrained so materials read. */
 export function createRoomLights(): { group: THREE.Group; sun: THREE.DirectionalLight } {
   const group = new THREE.Group()
 
-  const sun = new THREE.DirectionalLight('#F2E4D4', 1.55)
+  const sun = new THREE.DirectionalLight('#F2E4D4', 0.95)
   sun.position.set(-4.5, 9, 6)
   sun.castShadow = true
   const mapSize = isPhoneUA ? 512 : 2048
@@ -476,14 +510,13 @@ export function createRoomLights(): { group: THREE.Group; sun: THREE.Directional
   sun.shadow.normalBias = 0.03
   group.add(sun)
 
-  group.add(new THREE.HemisphereLight('#F0E6DC', '#6B5348', 0.42))
-  group.add(new THREE.AmbientLight('#D8C8BC', 0.18))
+  group.add(new THREE.HemisphereLight('#EDE4DC', '#5A4A52', 0.26))
 
-  const overhead = new THREE.PointLight('#FFE2C4', 12, 9, 2)
+  const overhead = new THREE.PointLight('#FFE2C4', 4.2, 8, 2)
   overhead.position.set(0.3, 3.4, -0.4)
   group.add(overhead)
 
-  const windowFill = new THREE.RectAreaLight('#C8D4F0', 6, 2.1, 1.9)
+  const windowFill = new THREE.RectAreaLight('#B8C4E0', 3.0, 2.1, 1.9)
   windowFill.position.set(1.35, 2.55, ROOM.backZ + 0.3)
   windowFill.lookAt(1.35, 2.2, 0)
   group.add(windowFill)
@@ -509,7 +542,12 @@ function createPendantLamp(): THREE.Group {
 
   const bulb = new THREE.Mesh(
     new THREE.SphereGeometry(0.16, 20, 14),
-    new THREE.MeshBasicMaterial({ color: '#FFEBD2' }),
+    new THREE.MeshStandardMaterial({
+      color: '#FFEBD2',
+      emissive: new THREE.Color('#FFE6C8'),
+      emissiveIntensity: 1.2,
+      roughness: 0.5,
+    }),
   )
   bulb.position.y = 3.2
   g.add(bulb)
