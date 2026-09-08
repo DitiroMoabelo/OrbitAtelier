@@ -15,7 +15,7 @@ Missing files fall back to the procedural room.
 | `plant.glb` | plant | left wall |
 | `bed.glb` | bed frame | right side |
 | `frame-a.glb` / `frame-b.glb` | wall posters | back wall |
-| `window.glb` | window frame | BirdTrail |
+| `window.glb` | twin open windows | BirdTrail |
 | `kitchen.glb` | cabinets / counter | Thedimogane Gas |
 | `stove.glb` | stove | Thedimogane Gas |
 | `cylinder.glb` | LPG tanks | Thedimogane Gas |
@@ -24,9 +24,10 @@ Missing files fall back to the procedural room.
 | `nightstand.glb` | nightstand | MediBook |
 | `desk.glb` | desk surface | Helpdesk |
 
-Bundled Poly Haven (CC0) assets: plant, bed, hanging frames, window, kitchen cabinet, stove, propane tank, desk, lamp, worn bookshelf, encyclopedia books.
+Bundled Poly Haven (CC0) assets: plant, bed, hanging frames, kitchen cabinet, stove, propane tank, desk, lamp, worn bookshelf, encyclopedia books.
 Chair sample: Khronos SheenChair.
 Monitors: modern PC displays from [GetGLB / Get3DModels](https://www.getglb.com/) (CC Attribution — credit authors on that page).
+Windows: open shuttered windows from [GetGLB — Weathered Window Scene](https://www.getglb.com/architecture/weathered-window-scene/) (CC Attribution). Replaces the old Poly Haven rollershutter (garage-door) model.
 
 ## Textures (`/textures`)
 
@@ -57,4 +58,5 @@ Export models as **glTF Binary (`.glb`)**. Keep each under ~5 MB when you can.
 
 All bundled Poly Haven files are CC0.  
 `chair.glb` (SheenChair) — [Khronos glTF Sample Models](https://github.com/KhronosGroup/glTF-Sample-Models).  
-`monitor.glb` / `monitor-side.glb` — CC Attribution via GetGLB/Get3DModels (modern PC monitors, not TVs).
+`monitor.glb` / `monitor-side.glb` — CC Attribution via GetGLB/Get3DModels (modern PC monitors, not TVs).  
+`window.glb` — CC Attribution via GetGLB Weathered Window Scene (open shutters; not rollershutter).

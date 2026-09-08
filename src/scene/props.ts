@@ -512,51 +512,88 @@ function buildBattleStation(project: RoomProject): Built {
   return { group, glow }
 }
 
+/** One open casement pair (left + right sashes swung into the room). */
+function openCasementUnit(
+  frameMat: THREE.Material,
+  glassMat: THREE.Material,
+  cx: number,
+  cy: number,
+  zWall: number,
+  unitW = 0.92,
+  unitH = 1.55,
+): THREE.Group {
+  const unit = new THREE.Group()
+  const depth = 0.1
+  const rail = 0.055
+  const sashOpen = 0.55
+
+  // Outer frame
+  unit.add(box(unitW + rail * 2, rail, depth, frameMat, cx, cy + unitH / 2, zWall + 0.05))
+  unit.add(box(unitW + rail * 2, rail, depth, frameMat, cx, cy - unitH / 2, zWall + 0.05))
+  unit.add(box(rail, unitH, depth, frameMat, cx - unitW / 2, cy, zWall + 0.05))
+  unit.add(box(rail, unitH, depth, frameMat, cx + unitW / 2, cy, zWall + 0.05))
+  unit.add(box(rail * 0.7, unitH - rail, depth * 0.85, frameMat, cx, cy, zWall + 0.05))
+
+  // Dusk beyond the opening
+  unit.add(box(unitW - 0.04, unitH * 0.45, 0.02, std('#1A1528', 0.95), cx, cy - unitH * 0.22, zWall - 0.06))
+  unit.add(box(unitW - 0.04, unitH * 0.45, 0.02, std('#2E2444', 0.92), cx, cy + unitH * 0.22, zWall - 0.06))
+
+  const sashW = (unitW - rail * 1.2) / 2
+  const sashH = unitH - rail * 1.4
+  ;[-1, 1].forEach((side) => {
+    const sash = new THREE.Group()
+    // Hinge on the outer stile; swing into the room.
+    const hingeX = cx + side * (unitW / 2 - rail * 0.4)
+    sash.position.set(hingeX, cy, zWall + 0.08)
+    sash.rotation.y = -side * sashOpen
+
+    const localX = -side * (sashW / 2)
+    sash.add(box(sashW, rail * 0.7, 0.045, frameMat, localX, sashH / 2, 0))
+    sash.add(box(sashW, rail * 0.7, 0.045, frameMat, localX, -sashH / 2, 0))
+    sash.add(box(rail * 0.55, sashH, 0.045, frameMat, localX - sashW / 2, 0, 0))
+    sash.add(box(rail * 0.55, sashH, 0.045, frameMat, localX + sashW / 2, 0, 0))
+    sash.add(box(rail * 0.4, sashH - rail, 0.04, frameMat, localX, 0, 0))
+    sash.add(box(sashW - rail, rail * 0.4, 0.04, frameMat, localX, 0, 0))
+    const glass = box(sashW - rail * 1.1, sashH - rail * 1.1, 0.012, glassMat, localX, 0, -0.01)
+    glass.castShadow = false
+    sash.add(glass)
+    unit.add(sash)
+  })
+
+  return unit
+}
+
 function buildWindowNook(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  const frameMat = std('#F0DCEA', 0.5)
+  const frameMat = std('#EDE2D4', 0.48)
   const sillMat = std('#E4CADA', 0.7)
   const zWall = ROOM.backZ + 0.16 - project.position[2]
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    color: '#8A9BB8',
+    roughness: 0.08,
+    metalness: 0.02,
+    transmission: 0.72,
+    thickness: 0.25,
+    transparent: true,
+    opacity: 0.55,
+    emissive: new THREE.Color('#3A2E58'),
+    emissiveIntensity: 0.12,
+  })
 
-  // Frame + dusk glass — replaced by models/window.glb when present.
+  // Twin open casements — replaced by models/window.glb when present.
   const shell = new THREE.Group()
   shell.name = 'slot-window'
-
-  const pane = box(
-    2.0,
-    1.85,
-    0.03,
-    new THREE.MeshPhysicalMaterial({
-      color: '#2A2438',
-      roughness: 0.12,
-      metalness: 0.05,
-      transmission: 0.35,
-      thickness: 0.4,
-      transparent: true,
-      opacity: 0.92,
-      emissive: new THREE.Color('#3A2E58'),
-      emissiveIntensity: 0.18,
-    }),
-    0,
-    2.55,
-    zWall + 0.01,
-  )
-  shell.add(pane)
-
-  // Soft dusk gradient band behind the glass (not a cartoon sky sticker).
-  shell.add(box(1.92, 0.85, 0.015, std('#1E1830', 0.95), 0, 2.15, zWall - 0.04))
-  shell.add(box(1.92, 0.55, 0.015, std('#342848', 0.92), 0, 2.85, zWall - 0.04))
-
-  shell.add(box(2.3, 0.14, 0.16, frameMat, 0, 3.55, zWall + 0.06))
-  shell.add(box(2.3, 0.14, 0.16, frameMat, 0, 1.56, zWall + 0.06))
-  shell.add(box(0.14, 2.13, 0.16, frameMat, -1.08, 2.55, zWall + 0.06))
-  shell.add(box(0.14, 2.13, 0.16, frameMat, 1.08, 2.55, zWall + 0.06))
-  shell.add(box(0.09, 2.0, 0.12, frameMat, 0, 2.55, zWall + 0.06))
-  shell.add(box(2.1, 0.08, 0.12, frameMat, 0, 2.55, zWall + 0.06))
-  shell.add(box(2.6, 0.12, 0.44, sillMat, 0, 1.46, zWall + 0.2))
+  shell.add(openCasementUnit(frameMat, glassMat, -0.72, 2.45, zWall))
   group.add(shell)
+
+  const shellB = new THREE.Group()
+  shellB.name = 'slot-window-b'
+  shellB.add(openCasementUnit(frameMat, glassMat, 0.72, 2.45, zWall))
+  group.add(shellB)
+
+  group.add(box(2.85, 0.12, 0.46, sillMat, 0, 1.52, zWall + 0.22))
 
   // BirdTrail accents stay even when a GLB replaces the window shell.
   const bird = new THREE.Group()

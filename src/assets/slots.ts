@@ -147,12 +147,22 @@ export const MODEL_SLOTS: ModelSlot[] = [
     castShadow: false,
   },
   {
+    // Open shuttered window (GetGLB / CC Attribution) — not Poly Haven rollershutter.
     file: 'window.glb',
     attachTo: 'birdtrail',
     replaces: 'slot-window',
-    position: [0, 1.5, -0.12],
-    rotationY: 0,
-    targetHeight: 2.15,
+    position: [-0.98, 1.48, -0.06],
+    rotationY: Math.PI / 2,
+    targetHeight: 1.9,
+    ground: false,
+  },
+  {
+    file: 'window.glb',
+    attachTo: 'birdtrail',
+    replaces: 'slot-window-b',
+    position: [0.98, 1.48, -0.06],
+    rotationY: Math.PI / 2,
+    targetHeight: 1.9,
     ground: false,
   },
   {
