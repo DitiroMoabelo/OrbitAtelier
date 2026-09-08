@@ -18,15 +18,22 @@ if (!canvas || !app) {
 
 let renderer: THREE.WebGLRenderer
 try {
+  // Prefer a permissive context: some GPUs reject high-performance hints
+  // even though WebGL itself works (get.webgl.org still passes).
   renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
     alpha: false,
-    powerPreference: 'high-performance',
+    failIfMajorPerformanceCaveat: false,
     preserveDrawingBuffer: true,
   })
-} catch {
+} catch (error) {
   noWebgl?.removeAttribute('hidden')
+  const detail = noWebgl?.querySelector('[data-webgl-detail]')
+  if (detail) {
+    detail.textContent =
+      error instanceof Error ? error.message : 'Could not create a WebGL context.'
+  }
   throw new Error('WebGL unavailable')
 }
 

@@ -278,12 +278,20 @@ body {
   position: absolute;
   inset: 0;
   z-index: 20;
-  display: grid;
   place-content: center;
   gap: 0.75rem;
   padding: 2rem;
   text-align: center;
   background: #fff4ea;
+}
+
+/* Author `display` must not override the HTML hidden attribute. */
+.no-webgl[hidden] {
+  display: none !important;
+}
+
+.no-webgl:not([hidden]) {
+  display: grid;
 }
 
 .no-webgl a {
