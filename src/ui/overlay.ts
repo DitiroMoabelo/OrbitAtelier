@@ -1,6 +1,13 @@
 import type { RoomProject } from '../data/projects'
+import { isTouch } from '../device'
 
-const IDLE_HINT = 'Drag to look · Scroll to zoom · Click a prop'
+const IDLE_HINT = isTouch
+  ? 'Drag to look · Pinch to zoom · Tap a prop'
+  : 'Drag to look · Scroll to zoom · Click a prop'
+
+const OPEN_HINT = isTouch
+  ? 'Tap Back to return to the room'
+  : 'Press Esc to step back into the room'
 
 export class ProjectPanel {
   private readonly panel: HTMLElement
@@ -19,6 +26,7 @@ export class ProjectPanel {
     this.proof = el('panel-proof')
     this.actions = el('panel-actions')
     this.hint = el('hint')
+    this.hint.textContent = IDLE_HINT
 
     el('panel-close').addEventListener('click', () => {
       this.hide()
@@ -51,12 +59,14 @@ export class ProjectPanel {
     }
 
     this.panel.hidden = false
+    document.documentElement.classList.add('is-inspecting')
     requestAnimationFrame(() => this.panel.classList.add('is-open'))
-    this.hint.textContent = 'Press Esc to step back into the room'
+    this.hint.textContent = OPEN_HINT
   }
 
   hide() {
     this.panel.classList.remove('is-open')
+    document.documentElement.classList.remove('is-inspecting')
     window.setTimeout(() => {
       this.panel.hidden = true
     }, 280)
@@ -80,6 +90,7 @@ export class PropNav {
       button.type = 'button'
       button.className = 'nav-chip'
       button.textContent = project.short
+      button.setAttribute('aria-label', `Open ${project.short}`)
       button.style.setProperty('--chip-accent', project.accent)
       button.addEventListener('click', () => onSelect(project.id))
       this.root.appendChild(button)

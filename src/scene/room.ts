@@ -1,5 +1,8 @@
 import * as THREE from 'three'
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
+import { isPhoneUA } from '../device'
 import { registerRgb } from './rgb'
+import { maps } from './textures'
 
 export const ROOM = {
   halfWidth: 7,
@@ -8,15 +11,46 @@ export const ROOM = {
   height: 5,
 }
 
-/** Dusk-lit gamer bedroom: deep plum walls so the RGB and pastels both pop. */
-const WALL = '#4A3654'
-const WALL_LOWER = '#5D4468'
-const TRIM = '#F5DFEE'
-const FLOOR = '#B58C71'
-const FLOOR_DARK = '#96694F'
+/** Dusk-lit gamer bedroom: real wood and plaster, with RGB as the accent. */
+const WALL = '#6A5A72'
+const WALL_LOWER = '#5C4C64'
+const TRIM = '#E8D5C8'
 
 function std(color: string, roughness = 0.75, metalness = 0) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness })
+}
+
+function plaster(color: string) {
+  const { plaster, bump } = maps()
+  return new THREE.MeshStandardMaterial({
+    color,
+    map: plaster,
+    bumpMap: bump,
+    bumpScale: 0.028,
+    roughness: 0.88,
+  })
+}
+
+function woodFloor() {
+  const { wood, bump } = maps()
+  return new THREE.MeshStandardMaterial({
+    color: '#D2B08A',
+    map: wood,
+    bumpMap: bump,
+    bumpScale: 0.1,
+    roughness: 0.72,
+  })
+}
+
+function fabric(color: string, map: THREE.Texture) {
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    map,
+    roughness: 0.82,
+    sheen: 1,
+    sheenRoughness: 0.55,
+    sheenColor: new THREE.Color('#f3c4d6'),
+  })
 }
 
 function box(
@@ -28,7 +62,8 @@ function box(
   y = 0,
   z = 0,
 ): THREE.Mesh {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material)
+  const radius = Math.min(0.04, w * 0.12, h * 0.12, d * 0.12)
+  const mesh = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 1, Math.max(radius, 0.004)), material)
   mesh.position.set(x, y, z)
   mesh.castShadow = true
   mesh.receiveShadow = true
@@ -56,26 +91,18 @@ export function createRoom(): THREE.Group {
   const root = new THREE.Group()
   root.name = 'room'
 
-  const wallMat = std(WALL, 0.92)
-  const wainscotMat = std(WALL_LOWER, 0.88)
-  const trimMat = std(TRIM, 0.55)
+  const wallMat = plaster(WALL)
+  const wainscotMat = plaster(WALL_LOWER)
+  const trimMat = std(TRIM, 0.45)
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM.halfWidth * 2, ROOM.depth),
-    std(FLOOR, 0.82),
+    woodFloor(),
   )
   floor.rotation.x = -Math.PI / 2
   floor.position.z = ROOM.backZ + ROOM.depth / 2
   floor.receiveShadow = true
   root.add(floor)
-
-  const plankMat = std(FLOOR_DARK, 0.9)
-  for (let i = 1; i < 14; i += 1) {
-    const seam = new THREE.Mesh(new THREE.PlaneGeometry(0.035, ROOM.depth), plankMat)
-    seam.rotation.x = -Math.PI / 2
-    seam.position.set(-ROOM.halfWidth + i, 0.002, ROOM.backZ + ROOM.depth / 2)
-    root.add(seam)
-  }
 
   root.add(box(ROOM.halfWidth * 2, ROOM.height, 0.3, wallMat, 0, ROOM.height / 2, ROOM.backZ - 0.15))
   root.add(box(ROOM.halfWidth * 2, 1.15, 0.06, wainscotMat, 0, 0.575, ROOM.backZ + 0.02))
@@ -92,7 +119,7 @@ export function createRoom(): THREE.Group {
 
   const ceiling = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM.halfWidth * 2, ROOM.depth),
-    std('#3A2B45', 0.95),
+    plaster('#4A3C52'),
   )
   ceiling.rotation.x = Math.PI / 2
   ceiling.position.set(0, ROOM.height, midZ)
@@ -108,15 +135,19 @@ export function createRoom(): THREE.Group {
 
 function createRug(): THREE.Group {
   const g = new THREE.Group()
-  const base = new THREE.Mesh(new THREE.CircleGeometry(2.5, 64), std('#E9A9C6', 0.95))
+  const { fabricPink, bump } = maps()
+  const pile = fabric('#E8B4C8', fabricPink)
+  pile.bumpMap = bump
+  pile.bumpScale = 0.03
+  const base = new THREE.Mesh(new THREE.CircleGeometry(2.5, 64), pile)
   base.rotation.x = -Math.PI / 2
   base.position.set(0.3, 0.008, -0.4)
   base.receiveShadow = true
   g.add(base)
 
-  const rings = ['#F8D5E6', '#C98BC0', '#FFF0F7']
+  const rings = ['#F3D0DC', '#C994B0', '#F7E6EE']
   rings.forEach((color, i) => {
-    const ring = new THREE.Mesh(new THREE.RingGeometry(1.55 - i * 0.5, 1.75 - i * 0.5, 64), std(color, 0.95))
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.55 - i * 0.5, 1.75 - i * 0.5, 64), fabric(color, fabricPink))
     ring.rotation.x = -Math.PI / 2
     ring.position.set(0.3, 0.012 + i * 0.002, -0.4)
     g.add(ring)
@@ -129,13 +160,15 @@ function createBed(): THREE.Group {
   g.position.set(5.2, 0, 3.1)
   g.rotation.y = -Math.PI / 2
 
-  g.add(box(3.4, 0.42, 1.9, std('#C99AB4', 0.75), 0, 0.28, 0))
-  g.add(box(0.18, 1.6, 1.9, std('#E7B7D0', 0.7), -1.7, 0.8, 0))
-  g.add(box(3.3, 0.32, 1.82, std('#FFF6EF', 0.9), 0.03, 0.63, 0))
-  g.add(box(2.35, 0.3, 1.9, std('#F0A7C8', 0.95), 0.5, 0.79, 0))
-  g.add(box(0.5, 0.32, 1.9, std('#B98BD6', 0.95), -0.75, 0.8, 0))
+  const { walnut, fabricPink, fabricCream } = maps()
+  const frame = new THREE.MeshStandardMaterial({ color: '#8A5A48', map: walnut, roughness: 0.55 })
+  g.add(box(3.4, 0.42, 1.9, frame, 0, 0.28, 0))
+  g.add(box(0.18, 1.6, 1.9, frame, -1.7, 0.8, 0))
+  g.add(box(3.3, 0.32, 1.82, fabric('#F4E6DC', fabricCream), 0.03, 0.63, 0))
+  g.add(box(2.35, 0.3, 1.9, fabric('#E8A8C0', fabricPink), 0.5, 0.79, 0))
+  g.add(box(0.5, 0.32, 1.9, fabric('#C4A0D4', fabricPink), -0.75, 0.8, 0))
 
-  const pillowMat = std('#FFFFFF', 0.95)
+  const pillowMat = fabric('#F7F0EA', fabricCream)
   const pillowA = box(0.75, 0.26, 0.72, pillowMat, -1.25, 0.9, -0.42)
   pillowA.rotation.z = 0.08
   g.add(pillowA)
@@ -260,11 +293,11 @@ export function createNeonRig(): { group: THREE.Group; lights: THREE.PointLight[
   group.add(createFairyLights())
   group.add(createCornerLamp())
 
-  const pinkGlow = new THREE.PointLight('#FF7FC4', 26, 12, 2)
+  const pinkGlow = new THREE.PointLight('#E8A0C0', 14, 11, 2)
   pinkGlow.position.set(-3.4, 2.6, ROOM.backZ + 1.2)
-  const violetGlow = new THREE.PointLight('#9B7BE8', 22, 12, 2)
+  const violetGlow = new THREE.PointLight('#B8A0D8', 12, 11, 2)
   violetGlow.position.set(3.4, 2.9, ROOM.backZ + 1.2)
-  const cyanGlow = new THREE.PointLight('#7FE3F0', 16, 10, 2)
+  const cyanGlow = new THREE.PointLight('#A8D0D8', 8, 9, 2)
   cyanGlow.position.set(-6.2, 1.6, 0.6)
   lights.push(pinkGlow, violetGlow, cyanGlow)
   lights.forEach((light) => group.add(light))
@@ -288,13 +321,16 @@ function createHexPanels(): THREE.Group {
   ]
 
   layout.forEach(([dx, dy], i) => {
-    const material = new THREE.MeshStandardMaterial({
-      color: '#FF8FD0',
-      roughness: 0.35,
-      emissive: new THREE.Color('#FF8FD0'),
-      emissiveIntensity: 1.5,
+    const material = new THREE.MeshPhysicalMaterial({
+      color: '#E8C0D4',
+      roughness: 0.22,
+      metalness: 0.08,
+      emissive: new THREE.Color('#E8A0C4'),
+      emissiveIntensity: 0.85,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.3,
     })
-    registerRgb(material, i * 0.11, { speed: 0.045, lightness: 0.58 })
+    registerRgb(material, i * 0.11, { speed: 0.045, saturation: 0.48, lightness: 0.58 })
 
     const panel = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.05, 6), material)
     panel.rotation.x = Math.PI / 2
@@ -417,25 +453,32 @@ function createCornerLamp(): THREE.Group {
 export function createRoomLights(): { group: THREE.Group; sun: THREE.DirectionalLight } {
   const group = new THREE.Group()
 
-  const sun = new THREE.DirectionalLight('#C9B4F0', 1.15)
-  sun.position.set(2.5, 8, 4)
+  const sun = new THREE.DirectionalLight('#F2E4D4', 1.55)
+  sun.position.set(-4.5, 9, 6)
   sun.castShadow = true
-  sun.shadow.mapSize.set(1024, 1024)
+  const mapSize = isPhoneUA ? 512 : 2048
+  sun.shadow.mapSize.set(mapSize, mapSize)
   sun.shadow.camera.near = 1
   sun.shadow.camera.far = 30
   sun.shadow.camera.left = -11
   sun.shadow.camera.right = 11
   sun.shadow.camera.top = 11
   sun.shadow.camera.bottom = -6
-  sun.shadow.bias = -0.0008
+  sun.shadow.bias = -0.0004
+  sun.shadow.normalBias = 0.03
   group.add(sun)
 
-  group.add(new THREE.HemisphereLight('#E7D7F5', '#6A4C5E', 0.65))
-  group.add(new THREE.AmbientLight('#D8C3E8', 0.42))
+  group.add(new THREE.HemisphereLight('#F0E6DC', '#6B5348', 0.42))
+  group.add(new THREE.AmbientLight('#D8C8BC', 0.18))
 
-  const overhead = new THREE.PointLight('#FFD3E8', 20, 10, 2)
+  const overhead = new THREE.PointLight('#FFE2C4', 12, 9, 2)
   overhead.position.set(0.3, 3.4, -0.4)
   group.add(overhead)
+
+  const windowFill = new THREE.RectAreaLight('#C8D4F0', 6, 2.1, 1.9)
+  windowFill.position.set(1.35, 2.55, ROOM.backZ + 0.3)
+  windowFill.lookAt(1.35, 2.2, 0)
+  group.add(windowFill)
 
   group.add(createPendantLamp())
 
@@ -467,7 +510,7 @@ function createPendantLamp(): THREE.Group {
 }
 
 export function createDust(): { points: THREE.Points; update: (time: number) => void } {
-  const count = 200
+  const count = isPhoneUA ? 70 : 160
   const positions = new Float32Array(count * 3)
   const seeds = new Float32Array(count)
 

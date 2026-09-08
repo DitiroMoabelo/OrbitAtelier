@@ -26,16 +26,20 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
-  background: var(--plum);
+  background: #1c1618;
   color: var(--text);
   font-family: var(--sans);
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 #app {
   position: relative;
   width: 100%;
   height: 100%;
+  height: 100dvh;
 }
 
 #orbit-canvas {
@@ -44,6 +48,7 @@ body {
   height: 100%;
   touch-action: none;
   cursor: grab;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #orbit-canvas.is-hover {
@@ -59,6 +64,8 @@ body {
   z-index: 2;
   pointer-events: none;
   padding: 1.25rem 1.5rem;
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
 }
 
 .chrome--top {
@@ -70,6 +77,7 @@ body {
   align-items: flex-start;
   gap: 1rem;
   padding-bottom: 2.5rem;
+  padding-top: max(1.25rem, env(safe-area-inset-top));
   /* Scrim keeps the title legible over bright props. */
   background: linear-gradient(180deg, rgba(28, 20, 34, 0.78), rgba(28, 20, 34, 0));
 }
@@ -83,6 +91,7 @@ body {
   color: var(--muted);
   text-align: center;
   padding-top: 2.5rem;
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   background: linear-gradient(0deg, rgba(28, 20, 34, 0.72), rgba(28, 20, 34, 0));
 }
 
@@ -146,14 +155,16 @@ body {
 .nav-rail {
   position: absolute;
   z-index: 4;
-  bottom: 3.1rem;
+  bottom: max(3.1rem, calc(env(safe-area-inset-bottom) + 2.4rem));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.45rem;
-  padding: 0 1rem;
+  padding: 0 max(1rem, env(safe-area-inset-left)) 0 max(1rem, env(safe-area-inset-right));
+  max-width: min(52rem, 100%);
+  pointer-events: auto;
 }
 
 .nav-chip {
@@ -162,12 +173,14 @@ body {
   font: inherit;
   font-size: 0.78rem;
   letter-spacing: 0.03em;
-  padding: 0.42rem 0.85rem;
+  padding: 0.55rem 0.95rem;
+  min-height: 44px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--glass);
   color: var(--ink);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -208,8 +221,9 @@ body {
   color: var(--pink);
   font: inherit;
   font-size: 0.85rem;
-  padding: 0;
-  margin-bottom: 1rem;
+  padding: 0.4rem 0;
+  min-height: 44px;
+  margin-bottom: 0.4rem;
   cursor: pointer;
 }
 
@@ -350,39 +364,139 @@ body {
   color: var(--pink);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
+  .brand__sub {
+    max-width: 16rem;
+    font-size: 0.82rem;
+  }
+
+  .panel {
+    width: min(20rem, calc(100vw - 2rem));
+  }
+}
+
+/* iPad portrait and phones: keep chrome compact, chips at the bottom, sheet panel. */
+@media (max-width: 900px) {
   .chrome--top {
     flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: 1.4rem;
+  }
+
+  .brand__title {
+    font-size: clamp(1.45rem, 6vw, 2.1rem);
+  }
+
+  .brand__sub {
+    display: none;
   }
 
   .hint {
     text-align: left;
     max-width: none;
+    font-size: 0.78rem;
   }
 
   .nav-rail {
-    bottom: auto;
-    top: 9.5rem;
-    justify-content: flex-start;
+    bottom: max(0.7rem, env(safe-area-inset-bottom));
+    top: auto;
     left: 0;
+    right: 0;
     transform: none;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    max-width: none;
+    gap: 0.4rem;
+    padding: 0.35rem max(0.75rem, env(safe-area-inset-right)) 0.2rem max(0.75rem, env(safe-area-inset-left));
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-chip {
+    font-size: 0.72rem;
+    padding: 0.5rem 0.8rem;
+    flex: 0 0 auto;
+  }
+
+  .chrome--bottom {
+    display: none;
+  }
+
+  .prop-label {
+    font-size: 0.58rem;
+    padding: 0.18rem 0.5rem;
   }
 
   .panel {
     top: auto;
-    bottom: 0.75rem;
-    right: 0.75rem;
-    left: 0.75rem;
+    bottom: 0;
+    right: 0;
+    left: 0;
     width: auto;
-    transform: translateY(1rem);
+    max-height: min(52vh, 28rem);
+    overflow: auto;
+    border-radius: 1.2rem 1.2rem 0 0;
+    transform: translateY(110%);
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
   }
 
   .panel.is-open {
     transform: translateY(0);
   }
 
+  html.is-inspecting .nav-rail,
+  html.is-inspecting .chrome--top .hint {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* Phone landscape: shrink chrome so the room stays visible. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .brand__name,
+  .brand__sub,
   .chrome--bottom {
     display: none;
+  }
+
+  .brand__title {
+    font-size: 1.2rem;
+  }
+
+  .chrome--top {
+    padding-bottom: 0.6rem;
+  }
+
+  .nav-rail {
+    bottom: max(0.4rem, env(safe-area-inset-bottom));
+  }
+
+  .nav-chip {
+    min-height: 36px;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .panel {
+    max-height: 88vh;
+    border-radius: 1rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    left: auto;
+    width: min(22rem, 52vw);
+    transform: translateX(110%);
+  }
+
+  .panel.is-open {
+    transform: translateX(0);
   }
 }
 

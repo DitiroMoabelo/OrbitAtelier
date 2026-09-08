@@ -1,7 +1,9 @@
 import * as THREE from 'three'
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import type { PropKind, RoomProject } from '../data/projects'
 import { ROOM } from './room'
 import { registerRgb } from './rgb'
+import { maps } from './textures'
 
 export type PropHandle = {
   project: RoomProject
@@ -15,13 +17,24 @@ export type PropHandle = {
   active: number
 }
 
-const WOOD = '#8E6B7E'
-const WOOD_DARK = '#6E4F60'
-const METAL = '#C9CCD2'
-const DARK = '#2E2233'
+const WOOD = '#8B5E3C'
+const WOOD_DARK = '#5C3A24'
+const METAL = '#B8BCC2'
+const DARK = '#2A2428'
 
 function std(color: string, roughness = 0.7, metalness = 0) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness })
+}
+
+function walnut(color = WOOD, roughness = 0.58) {
+  const { walnut, bump } = maps()
+  return new THREE.MeshStandardMaterial({
+    color,
+    map: walnut,
+    bumpMap: bump,
+    bumpScale: 0.025,
+    roughness,
+  })
 }
 
 function glowMat(color: string, emissive = color, roughness = 0.5) {
@@ -29,7 +42,7 @@ function glowMat(color: string, emissive = color, roughness = 0.5) {
     color,
     roughness,
     emissive: new THREE.Color(emissive),
-    emissiveIntensity: 0.12,
+    emissiveIntensity: 0.08,
   })
 }
 
@@ -42,7 +55,8 @@ function box(
   y = 0,
   z = 0,
 ): THREE.Mesh {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material)
+  const radius = Math.min(0.04, w * 0.12, h * 0.12, d * 0.12)
+  const mesh = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 1, Math.max(radius, 0.003)), material)
   mesh.position.set(x, y, z)
   mesh.castShadow = true
   mesh.receiveShadow = true
@@ -157,7 +171,7 @@ function buildBookshelf(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  const frame = std(WOOD, 0.75)
+  const frame = walnut()
   const width = 2.1
   const height = 2.9
   const depth = 0.5
@@ -235,11 +249,11 @@ function buildBattleStation(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  group.add(box(2.7, 0.09, 1.15, std('#F3E4EE', 0.5), 0, 0.78, 0))
+  group.add(box(2.7, 0.09, 1.15, std('#EDE6E0', 0.42), 0, 0.78, 0))
   ;[-1.25, 1.25].forEach((x) => {
-    ;[-0.47, 0.47].forEach((z) => group.add(box(0.09, 0.78, 0.09, std(WOOD_DARK, 0.6), x, 0.39, z)))
+    ;[-0.47, 0.47].forEach((z) => group.add(box(0.09, 0.78, 0.09, walnut(WOOD_DARK, 0.55), x, 0.39, z)))
   })
-  group.add(box(2.5, 0.06, 0.5, std(WOOD_DARK, 0.6), 0, 0.32, -0.25))
+  group.add(box(2.5, 0.06, 0.5, walnut(WOOD_DARK, 0.55), 0, 0.32, -0.25))
 
   // Under-desk glow strip.
   const underMat = new THREE.MeshBasicMaterial({ color: '#B98BD6' })
@@ -394,8 +408,18 @@ function buildBattleStation(project: RoomProject): Built {
   const chair = new THREE.Group()
   chair.position.set(-0.15, 0, 1.15)
   chair.rotation.y = 0.12
-  const chairMat = std('#F3E4EE', 0.7)
-  const chairTrim = std('#E86FB0', 0.6)
+  const chairMat = new THREE.MeshPhysicalMaterial({
+    color: '#E4D0D4',
+    roughness: 0.42,
+    clearcoat: 0.35,
+    clearcoatRoughness: 0.4,
+  })
+  const chairTrim = new THREE.MeshPhysicalMaterial({
+    color: '#C07090',
+    roughness: 0.38,
+    clearcoat: 0.4,
+    clearcoatRoughness: 0.35,
+  })
   chair.add(box(0.66, 0.12, 0.62, chairMat, 0, 0.5, 0))
   chair.add(box(0.72, 0.04, 0.66, chairTrim, 0, 0.44, 0))
   const back = box(0.66, 0.9, 0.12, chairMat, 0, 0.98, -0.28)
@@ -530,9 +554,9 @@ function buildKitchenette(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  group.add(box(2.3, 0.88, 0.7, std('#C98BC0', 0.75), 0, 0.44, 0))
-  group.add(box(2.42, 0.09, 0.78, std('#F6EDE2', 0.5), 0, 0.92, 0))
-  group.add(box(2.3, 1.1, 0.05, std('#E4CADA', 0.85), 0, 1.5, -0.34))
+  group.add(box(2.3, 0.88, 0.7, walnut('#9A6B78', 0.62), 0, 0.44, 0))
+  group.add(box(2.42, 0.09, 0.78, std('#E8DDD2', 0.38), 0, 0.92, 0))
+  group.add(box(2.3, 1.1, 0.05, std('#D4C0C8', 0.78), 0, 1.5, -0.34))
 
   // Under-cabinet LED, because of course there is one.
   const underMat = new THREE.MeshBasicMaterial({ color: '#8FD9E0' })
@@ -600,7 +624,7 @@ function buildNightstand(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  group.add(box(0.9, 0.72, 0.7, std(WOOD, 0.7), 0, 0.36, 0))
+  group.add(box(0.9, 0.72, 0.7, walnut(), 0, 0.36, 0))
   ;[0.52, 0.22].forEach((y) => {
     group.add(box(0.8, 0.26, 0.03, std('#A87A96', 0.6), 0, y, 0.36))
     const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 14, 10), std('#F0DCEA', 0.5))

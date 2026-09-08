@@ -24,7 +24,9 @@ export class PropPicker {
   wasClick(clientX: number, clientY: number) {
     const dx = clientX - this.downX
     const dy = clientY - this.downY
-    return dx * dx + dy * dy < 36
+    // Fingers drift more than a mouse; 28px still counts as a tap.
+    const limit = 'ontouchstart' in window ? 28 : 6
+    return dx * dx + dy * dy < limit * limit
   }
 
   setPointerFromEvent(event: PointerEvent, rect: DOMRect) {
