@@ -34,39 +34,6 @@ function prepareModel(root: THREE.Object3D, castShadow = true): void {
   })
 }
 
-/** Swap textured "picture" glass for clear dusk panes on open window assets. */
-function clearWindowGlass(root: THREE.Object3D): void {
-  const duskGlass = new THREE.MeshPhysicalMaterial({
-    color: '#9AA8C4',
-    roughness: 0.1,
-    metalness: 0.02,
-    transmission: 0.78,
-    thickness: 0.2,
-    transparent: true,
-    opacity: 0.42,
-    emissive: new THREE.Color('#2E2448'),
-    emissiveIntensity: 0.1,
-    side: THREE.DoubleSide,
-  })
-
-  root.traverse((child) => {
-    if (!(child instanceof THREE.Mesh)) return
-    const mats = Array.isArray(child.material) ? child.material : [child.material]
-    const isPictureGlass = mats.some((material) => {
-      if (!material) return false
-      const std = material as THREE.MeshStandardMaterial
-      return std.transparent === true || std.opacity < 0.99 || (std as THREE.MeshPhysicalMaterial).transmission > 0
-    })
-    // Tiny mesh count ≈ glass pane in the GetGLB open window.
-    const geo = child.geometry as THREE.BufferGeometry
-    const tris = geo?.index ? geo.index.count / 3 : (geo?.attributes.position?.count ?? 0) / 3
-    if (isPictureGlass || tris < 40) {
-      child.material = duskGlass
-      child.castShadow = false
-    }
-  })
-}
-
 function placeSlot(host: THREE.Object3D, model: THREE.Object3D, slot: ModelSlot): void {
   if (slot.replaces) {
     const old = host.getObjectByName(slot.replaces)
@@ -108,7 +75,6 @@ async function loadOne(
     const model = gltf.scene
     model.name = `gltf-${slot.file.replace(/\.glb$/i, '')}`
     prepareModel(model, slot.castShadow !== false)
-    if (slot.file === 'window.glb') clearWindowGlass(model)
 
     const host =
       slot.attachTo === 'room' ? roomRoot : byId.get(slot.attachTo)?.group ?? roomRoot

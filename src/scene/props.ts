@@ -512,51 +512,70 @@ function buildBattleStation(project: RoomProject): Built {
   return { group, glow }
 }
 
-/** One open casement pair (left + right sashes swung into the room). */
+/**
+ * Modern open casement window — sashes swung into the room.
+ * Free HQ “open window” GLBs are scarce (Poly Haven only ships rollershutters),
+ * so these are hand-built to match the room’s trim and dusk lighting.
+ */
 function openCasementUnit(
   frameMat: THREE.Material,
+  sashMat: THREE.Material,
   glassMat: THREE.Material,
+  handleMat: THREE.Material,
   cx: number,
   cy: number,
   zWall: number,
-  unitW = 0.92,
-  unitH = 1.55,
+  unitW = 0.98,
+  unitH = 1.62,
 ): THREE.Group {
   const unit = new THREE.Group()
-  const depth = 0.1
-  const rail = 0.055
-  const sashOpen = 0.55
+  const frameD = 0.12
+  const rail = 0.06
+  const sashOpen = 0.72
+  const zFace = zWall + 0.07
 
-  // Outer frame
-  unit.add(box(unitW + rail * 2, rail, depth, frameMat, cx, cy + unitH / 2, zWall + 0.05))
-  unit.add(box(unitW + rail * 2, rail, depth, frameMat, cx, cy - unitH / 2, zWall + 0.05))
-  unit.add(box(rail, unitH, depth, frameMat, cx - unitW / 2, cy, zWall + 0.05))
-  unit.add(box(rail, unitH, depth, frameMat, cx + unitW / 2, cy, zWall + 0.05))
-  unit.add(box(rail * 0.7, unitH - rail, depth * 0.85, frameMat, cx, cy, zWall + 0.05))
+  // Wall reveal / casing
+  unit.add(box(unitW + 0.22, 0.08, 0.14, frameMat, cx, cy + unitH / 2 + 0.04, zFace + 0.02))
+  unit.add(box(unitW + 0.22, 0.08, 0.14, frameMat, cx, cy - unitH / 2 - 0.04, zFace + 0.02))
+  unit.add(box(0.08, unitH + 0.16, 0.14, frameMat, cx - unitW / 2 - 0.04, cy, zFace + 0.02))
+  unit.add(box(0.08, unitH + 0.16, 0.14, frameMat, cx + unitW / 2 + 0.04, cy, zFace + 0.02))
 
-  // Dusk beyond the opening
-  unit.add(box(unitW - 0.04, unitH * 0.45, 0.02, std('#1A1528', 0.95), cx, cy - unitH * 0.22, zWall - 0.06))
-  unit.add(box(unitW - 0.04, unitH * 0.45, 0.02, std('#2E2444', 0.92), cx, cy + unitH * 0.22, zWall - 0.06))
+  // Fixed outer frame
+  unit.add(box(unitW, rail, frameD, frameMat, cx, cy + unitH / 2 - rail / 2, zFace))
+  unit.add(box(unitW, rail, frameD, frameMat, cx, cy - unitH / 2 + rail / 2, zFace))
+  unit.add(box(rail, unitH - rail * 2, frameD, frameMat, cx - unitW / 2 + rail / 2, cy, zFace))
+  unit.add(box(rail, unitH - rail * 2, frameD, frameMat, cx + unitW / 2 - rail / 2, cy, zFace))
+  unit.add(box(rail * 0.85, unitH - rail * 2, frameD * 0.9, frameMat, cx, cy, zFace))
 
-  const sashW = (unitW - rail * 1.2) / 2
-  const sashH = unitH - rail * 1.4
+  // Dusk sky beyond the opening (reads as open air, not a shuttered panel)
+  unit.add(box(unitW - rail * 2.2, unitH * 0.42, 0.02, std('#15121F', 0.96), cx, cy - unitH * 0.2, zWall - 0.08))
+  unit.add(box(unitW - rail * 2.2, unitH * 0.42, 0.02, std('#2A2240', 0.94), cx, cy + unitH * 0.18, zWall - 0.08))
+  unit.add(box(unitW - rail * 2.2, unitH * 0.18, 0.02, std('#4A3A62', 0.9), cx, cy + unitH * 0.38, zWall - 0.08))
+
+  const sashW = (unitW - rail * 2.4) / 2
+  const sashH = unitH - rail * 2.4
   ;[-1, 1].forEach((side) => {
     const sash = new THREE.Group()
-    // Hinge on the outer stile; swing into the room.
-    const hingeX = cx + side * (unitW / 2 - rail * 0.4)
-    sash.position.set(hingeX, cy, zWall + 0.08)
+    const hingeX = cx + side * (unitW / 2 - rail * 0.55)
+    sash.position.set(hingeX, cy, zFace + 0.02)
     sash.rotation.y = -side * sashOpen
 
     const localX = -side * (sashW / 2)
-    sash.add(box(sashW, rail * 0.7, 0.045, frameMat, localX, sashH / 2, 0))
-    sash.add(box(sashW, rail * 0.7, 0.045, frameMat, localX, -sashH / 2, 0))
-    sash.add(box(rail * 0.55, sashH, 0.045, frameMat, localX - sashW / 2, 0, 0))
-    sash.add(box(rail * 0.55, sashH, 0.045, frameMat, localX + sashW / 2, 0, 0))
-    sash.add(box(rail * 0.4, sashH - rail, 0.04, frameMat, localX, 0, 0))
-    sash.add(box(sashW - rail, rail * 0.4, 0.04, frameMat, localX, 0, 0))
-    const glass = box(sashW - rail * 1.1, sashH - rail * 1.1, 0.012, glassMat, localX, 0, -0.01)
+    const stile = rail * 0.55
+    sash.add(box(sashW, stile, 0.05, sashMat, localX, sashH / 2 - stile / 2, 0))
+    sash.add(box(sashW, stile, 0.05, sashMat, localX, -sashH / 2 + stile / 2, 0))
+    sash.add(box(stile, sashH, 0.05, sashMat, localX - sashW / 2 + stile / 2, 0, 0))
+    sash.add(box(stile, sashH, 0.05, sashMat, localX + sashW / 2 - stile / 2, 0, 0))
+    sash.add(box(stile * 0.7, sashH - stile * 2, 0.045, sashMat, localX, 0, 0))
+    sash.add(box(sashW - stile * 2, stile * 0.65, 0.045, sashMat, localX, 0, 0))
+
+    const glass = box(sashW - stile * 2.1, sashH - stile * 2.1, 0.01, glassMat, localX, 0, -0.008)
     glass.castShadow = false
     sash.add(glass)
+
+    // Latch on the meeting stile
+    const handle = box(0.018, 0.1, 0.03, handleMat, localX - side * (sashW / 2 - stile * 1.2), 0.05, 0.035)
+    sash.add(handle)
     unit.add(sash)
   })
 
@@ -567,37 +586,42 @@ function buildWindowNook(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  const frameMat = std('#EDE2D4', 0.48)
-  const sillMat = std('#E4CADA', 0.7)
+  const frameMat = std('#E8D5C8', 0.42)
+  const sashMat = std('#F2E6DA', 0.38)
+  const sillMat = std('#DCC4B4', 0.55)
+  const handleMat = std('#A8ADB8', 0.28, 0.75)
   const zWall = ROOM.backZ + 0.16 - project.position[2]
   const glassMat = new THREE.MeshPhysicalMaterial({
-    color: '#8A9BB8',
-    roughness: 0.08,
-    metalness: 0.02,
-    transmission: 0.72,
-    thickness: 0.25,
+    color: '#C5D0E4',
+    roughness: 0.06,
+    metalness: 0,
+    transmission: 0.85,
+    thickness: 0.18,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.35,
     emissive: new THREE.Color('#3A2E58'),
-    emissiveIntensity: 0.12,
+    emissiveIntensity: 0.08,
+    side: THREE.DoubleSide,
   })
 
-  // Twin open casements — replaced by models/window.glb when present.
+  // Twin open casements (no garage-door / rollershutter assets).
   const shell = new THREE.Group()
   shell.name = 'slot-window'
-  shell.add(openCasementUnit(frameMat, glassMat, -0.72, 2.45, zWall))
+  shell.add(openCasementUnit(frameMat, sashMat, glassMat, handleMat, -0.78, 2.48, zWall))
   group.add(shell)
 
   const shellB = new THREE.Group()
   shellB.name = 'slot-window-b'
-  shellB.add(openCasementUnit(frameMat, glassMat, 0.72, 2.45, zWall))
+  shellB.add(openCasementUnit(frameMat, sashMat, glassMat, handleMat, 0.78, 2.48, zWall))
   group.add(shellB)
 
-  group.add(box(2.85, 0.12, 0.46, sillMat, 0, 1.52, zWall + 0.22))
+  // Continuous sill under both openings
+  group.add(box(3.05, 0.08, 0.42, sillMat, 0, 1.58, zWall + 0.24))
+  group.add(box(3.05, 0.045, 0.08, frameMat, 0, 1.64, zWall + 0.08))
 
-  // BirdTrail accents stay even when a GLB replaces the window shell.
+  // BirdTrail accents on the sill.
   const bird = new THREE.Group()
-  bird.position.set(0.72, 1.66, zWall + 0.26)
+  bird.position.set(0.72, 1.72, zWall + 0.28)
   bird.rotation.y = -0.6
   const bodyMat = glowMat(project.color, project.accent, 0.5)
   glow.push(bodyMat)
@@ -624,7 +648,7 @@ function buildWindowNook(project: RoomProject): Built {
   group.add(bird)
 
   const binos = new THREE.Group()
-  binos.position.set(-0.62, 1.63, zWall + 0.26)
+  binos.position.set(-0.62, 1.7, zWall + 0.28)
   binos.rotation.y = 0.35
   const binoMat = glowMat('#4A4F63', '#8FD9E0', 0.4)
   glow.push(binoMat)
@@ -639,16 +663,16 @@ function buildWindowNook(project: RoomProject): Built {
   binos.add(box(0.09, 0.05, 0.16, binoMat, 0, 0.03, 0))
   group.add(binos)
 
-  const notebook = box(0.34, 0.05, 0.26, std('#C9B07A', 0.7), -0.05, 1.55, zWall + 0.3)
+  const notebook = box(0.34, 0.05, 0.26, std('#C9B07A', 0.7), -0.05, 1.64, zWall + 0.32)
   notebook.rotation.y = -0.3
   group.add(notebook)
 
-  group.add(cyl(0.13, 0.1, 0.2, std('#E9A9C6', 0.7), 1.15, 1.62, zWall + 0.26, 18))
+  group.add(cyl(0.13, 0.1, 0.2, std('#E9A9C6', 0.7), 1.15, 1.7, zWall + 0.28, 18))
   for (let i = 0; i < 6; i += 1) {
     const a = (i / 6) * Math.PI * 2
     const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), std('#7FB98C', 0.8))
     leaf.scale.set(0.45, 1.5, 0.45)
-    leaf.position.set(1.15 + Math.cos(a) * 0.07, 1.82 + (i % 2) * 0.08, zWall + 0.26 + Math.sin(a) * 0.07)
+    leaf.position.set(1.15 + Math.cos(a) * 0.07, 1.9 + (i % 2) * 0.08, zWall + 0.28 + Math.sin(a) * 0.07)
     leaf.rotation.z = Math.cos(a) * 0.5
     group.add(leaf)
   }
