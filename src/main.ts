@@ -1,13 +1,12 @@
 import './style.css'
 import * as THREE from 'three'
 import { projects } from './data/projects'
-import { createStarfield, updateStarfield } from './scene/starfield'
-import { createSun, pulseSun } from './scene/sun'
-import { createPlanets, setPlanetHover, updatePlanets } from './scene/planets'
+import { createAtelierRoom, createDust, updateDust } from './scene/atelier'
+import { createMobile, impulseCharm, setCharmHover, updateMobile } from './scene/mobile'
 import { CameraRig } from './interaction/cameraRig'
-import { PlanetPicker } from './interaction/picker'
+import { CharmPicker } from './interaction/picker'
 import { BootScreen, ProjectPanel } from './ui/overlay'
-import { attachPlanetLabels, createLabelRenderer } from './ui/labels'
+import { attachCharmLabels, createLabelRenderer } from './ui/labels'
 
 const canvas = document.getElementById('orbit-canvas') as HTMLCanvasElement | null
 const noWebgl = document.getElementById('no-webgl')
@@ -33,44 +32,51 @@ try {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const boot = new BootScreen()
-boot.setProgress(12, 'Lighting the starfield…')
+boot.setProgress(12, 'Opening the atelier…')
 
-renderer.setClearColor(0x0f0c12, 1)
+renderer.setClearColor(0xfff4ea, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.setSize(window.innerWidth, window.innerHeight, false)
 renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.25
+renderer.toneMappingExposure = 1.15
 
-boot.setProgress(28, 'Placing the sun…')
+boot.setProgress(30, 'Hanging the rail…')
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.FogExp2(0x100c14, 0.018)
+scene.fog = new THREE.Fog(0xfff4ea, 12, 32)
 
 const rig = new CameraRig(canvas)
-const starfield = createStarfield()
-const sun = createSun()
-const { root: planetRoot, handles } = createPlanets(projects)
+const room = createAtelierRoom()
+const dust = createDust()
+const { root: mobileRoot, handles } = createMobile(projects)
 
-scene.add(starfield)
-scene.add(sun)
-scene.add(planetRoot)
-scene.add(new THREE.AmbientLight(0xfff0e8, 0.35))
-scene.add(new THREE.HemisphereLight(0xffe8f0, 0x1a1020, 0.55))
+scene.add(room)
+scene.add(dust)
+scene.add(mobileRoot)
 
-boot.setProgress(55, 'Charting orbits…')
+const key = new THREE.DirectionalLight(0xfff0e8, 1.35)
+key.position.set(-4, 6, 5)
+scene.add(key)
+scene.add(new THREE.AmbientLight(0xffe8f0, 0.55))
+scene.add(new THREE.HemisphereLight(0xfff7ee, 0xe8d5c4, 0.7))
+const fill = new THREE.PointLight(0xf7c7d3, 12, 18, 2)
+fill.position.set(3, 2, 2)
+scene.add(fill)
+
+boot.setProgress(58, 'Balancing the charms…')
 
 const labelRenderer = createLabelRenderer(app)
-attachPlanetLabels(handles)
+attachCharmLabels(handles)
 
-const picker = new PlanetPicker(handles)
+const picker = new CharmPicker(handles)
 let selectedId: string | null = null
 let hoveredId: string | null = null
 
 const panel = new ProjectPanel(() => {
   selectedId = null
   rig.resetHome()
-  setPlanetHover(handles, hoveredId)
+  setCharmHover(handles, hoveredId)
 })
 
 function resize() {
@@ -95,7 +101,7 @@ canvas.addEventListener('pointermove', (event) => {
   const next = hit?.id ?? null
   if (next !== hoveredId) {
     hoveredId = next
-    setPlanetHover(handles, selectedId ?? hoveredId)
+    setCharmHover(handles, selectedId ?? hoveredId)
     canvas.classList.toggle('is-hover', Boolean(hoveredId))
   }
 })
@@ -108,20 +114,23 @@ canvas.addEventListener('pointerup', (event) => {
   if (!hit) return
 
   selectedId = hit.id
-  setPlanetHover(handles, selectedId)
+  setCharmHover(handles, selectedId)
+  impulseCharm(hit, 1.1)
   const world = new THREE.Vector3()
-  hit.group.getWorldPosition(world)
+  hit.charm.getWorldPosition(world)
+  // Aim slightly above the charm so the label and body read clearly.
+  world.y += 0.2
   rig.focusOn(world)
   panel.show(hit.project)
 })
 
 canvas.addEventListener('pointerleave', () => {
   hoveredId = null
-  if (!selectedId) setPlanetHover(handles, null)
+  if (!selectedId) setCharmHover(handles, null)
   canvas.classList.remove('is-hover')
 })
 
-boot.setProgress(82, 'Settling the camera…')
+boot.setProgress(84, 'Settling dust in the light…')
 
 const clock = new THREE.Clock()
 
@@ -129,9 +138,8 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05)
   const t = clock.elapsedTime
 
-  updateStarfield(starfield, t, window.innerWidth, window.innerHeight)
-  pulseSun(sun, t)
-  updatePlanets(handles, dt, reducedMotion, selectedId)
+  updateDust(dust, t)
+  updateMobile(handles, dt, t, reducedMotion, selectedId)
   rig.update(dt)
   renderer.render(scene, rig.camera)
   labelRenderer.render(scene, rig.camera)

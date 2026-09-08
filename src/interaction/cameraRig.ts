@@ -4,8 +4,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 export class CameraRig {
   readonly camera: THREE.PerspectiveCamera
   readonly controls: OrbitControls
-  private readonly homePos = new THREE.Vector3(0, 7.5, 18)
-  private readonly homeTarget = new THREE.Vector3(0, 0, 0)
+  private readonly homePos = new THREE.Vector3(0, 0.6, 9.5)
+  private readonly homeTarget = new THREE.Vector3(0, 0.4, 0)
   private blending = false
   private blend = 0
   private readonly fromPos = new THREE.Vector3()
@@ -14,15 +14,16 @@ export class CameraRig {
   private readonly toTarget = new THREE.Vector3()
 
   constructor(canvas: HTMLCanvasElement) {
-    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200)
+    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80)
     this.camera.position.copy(this.homePos)
 
     this.controls = new OrbitControls(this.camera, canvas)
     this.controls.enableDamping = true
-    this.controls.dampingFactor = 0.06
-    this.controls.minDistance = 3.5
-    this.controls.maxDistance = 36
-    this.controls.maxPolarAngle = Math.PI * 0.49
+    this.controls.dampingFactor = 0.07
+    this.controls.minDistance = 3.2
+    this.controls.maxDistance = 14
+    this.controls.minPolarAngle = Math.PI * 0.22
+    this.controls.maxPolarAngle = Math.PI * 0.62
     this.controls.target.copy(this.homeTarget)
     this.controls.update()
   }
@@ -32,9 +33,8 @@ export class CameraRig {
     this.camera.updateProjectionMatrix()
   }
 
-  /** Ease the camera toward a planet inspection angle. */
   focusOn(worldPos: THREE.Vector3) {
-    const offset = new THREE.Vector3(2.4, 1.2, 3.2).normalize().multiplyScalar(4.2)
+    const offset = new THREE.Vector3(0.15, 0.35, 2.6)
     this.toPos.copy(worldPos).add(offset)
     this.toTarget.copy(worldPos)
     this.beginBlend()
@@ -56,7 +56,7 @@ export class CameraRig {
 
   update(dt: number) {
     if (this.blending) {
-      this.blend = Math.min(1, this.blend + dt * 1.35)
+      this.blend = Math.min(1, this.blend + dt * 1.45)
       const t = easeInOutCubic(this.blend)
       this.camera.position.lerpVectors(this.fromPos, this.toPos, t)
       this.controls.target.lerpVectors(this.fromTarget, this.toTarget, t)

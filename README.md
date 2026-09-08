@@ -1,40 +1,32 @@
-# Orbit Atelier
+# Charm Atelier
 
-An interactive WebGL solar system for Ditiro Moabelo’s portfolio.
+A kinetic WebGL sculpture of Ditiro Moabelo’s work.
 
-Each pastel planet is a real project. Drag to orbit the camera, scroll to zoom,
-hover to highlight, and click to dollie in and open case-study details.
+This is **not** a solar-system portfolio demo. Projects hang as porcelain-like
+charms from a ceiling rail — each with its own silhouette (ticket stub, open
+book, capsule, wing, lantern) — and sway on soft pendulum physics. Pull a
+charm forward to open its case study.
+
+## What makes it distinct
+
+- Soft cream **atelier room** instead of dark outer space
+- **Custom velvet/fresnel GLSL** materials (not stock `MeshStandardMaterial`)
+- **Unique charm geometries** per project, not a row of spheres
+- **Pendulum sway + click impulse** on hanging threads
+- Dust motes in window light, brass-pink rail, pastel rug
 
 ## Stack
 
-- TypeScript
-- Vite
-- Three.js (WebGL renderer, custom starfield shader, raycasting, OrbitControls)
+TypeScript · Vite · Three.js · custom shaders · CSS2D labels
 
-## What it demonstrates
-
-- Scene graph, lighting, tone mapping
-- Procedural shader starfield (no texture downloads)
-- Raycast hover/select with drag-vs-click discrimination
-- Eased camera transitions into a selected planet
-- `prefers-reduced-motion` support and a WebGL fallback message
-- Pixel ratio capping for performance
-
-## Run locally
+## Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Build
-
-```bash
-npm run build
-npm run preview
-```
-
-For GitHub Pages under `/OrbitAtelier/`:
+## Build for GitHub Pages
 
 ```bash
 set VITE_BASE_PATH=/OrbitAtelier/
@@ -45,7 +37,7 @@ npm run build
 
 | Input | Action |
 | --- | --- |
-| Drag | Orbit camera |
+| Drag | Look around the atelier |
 | Scroll | Zoom |
-| Click planet | Focus + open panel |
-| Esc / Back | Return to system view |
+| Click charm | Pull it forward + open panel |
+| Esc / Release | Return the mobile to rest |

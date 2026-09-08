@@ -1,4 +1,4 @@
-import type { OrbitProject } from '../data/projects'
+import type { CharmProject } from '../data/projects'
 
 export class ProjectPanel {
   private readonly panel: HTMLElement
@@ -33,7 +33,7 @@ export class ProjectPanel {
     })
   }
 
-  show(project: OrbitProject) {
+  show(project: CharmProject) {
     this.tech.textContent = project.tech
     this.title.textContent = project.name
     this.body.textContent = project.blurb
@@ -52,7 +52,7 @@ export class ProjectPanel {
 
     this.panel.hidden = false
     requestAnimationFrame(() => this.panel.classList.add('is-open'))
-    this.hint.textContent = 'Press Esc or Back to return'
+    this.hint.textContent = 'Press Esc or release the charm to return'
   }
 
   hide() {
@@ -60,7 +60,7 @@ export class ProjectPanel {
     window.setTimeout(() => {
       this.panel.hidden = true
     }, 280)
-    this.hint.textContent = 'Drag to orbit · Scroll to zoom · Click a planet'
+    this.hint.textContent = 'Drag to look · Scroll to zoom · Pull a charm'
   }
 
   get open() {

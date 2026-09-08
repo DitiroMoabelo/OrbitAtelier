@@ -1,20 +1,23 @@
 import * as THREE from 'three'
-import type { PlanetHandle } from '../scene/planets'
+import type { CharmHandle } from '../scene/mobile'
 
-export class PlanetPicker {
+export class CharmPicker {
   private readonly raycaster = new THREE.Raycaster()
   private readonly pointer = new THREE.Vector2()
-  private readonly bodies: THREE.Object3D[]
-  private readonly byId: Map<string, PlanetHandle>
+  private readonly bodies: THREE.Object3D[] = []
+  private readonly byId: Map<string, CharmHandle>
   private downX = 0
   private downY = 0
 
-  constructor(handles: PlanetHandle[]) {
-    this.bodies = handles.map((h) => h.body)
+  constructor(handles: CharmHandle[]) {
     this.byId = new Map(handles.map((h) => [h.id, h]))
+    for (const handle of handles) {
+      handle.charm.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh) this.bodies.push(obj)
+      })
+    }
   }
 
-  /** Track pointer for hover without treating a drag as a click. */
   onPointerDown(clientX: number, clientY: number) {
     this.downX = clientX
     this.downY = clientY
@@ -31,7 +34,7 @@ export class PlanetPicker {
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
   }
 
-  pick(camera: THREE.Camera): PlanetHandle | null {
+  pick(camera: THREE.Camera): CharmHandle | null {
     this.raycaster.setFromCamera(this.pointer, camera)
     const hits = this.raycaster.intersectObjects(this.bodies, false)
     if (!hits.length) return null

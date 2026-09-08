@@ -2,16 +2,17 @@ import {
   CSS2DObject,
   CSS2DRenderer,
 } from 'three/addons/renderers/CSS2DRenderer.js'
-import type { PlanetHandle } from '../scene/planets'
+import type { CharmHandle } from '../scene/mobile'
 
-export function attachPlanetLabels(handles: PlanetHandle[]): CSS2DObject[] {
+export function attachCharmLabels(handles: CharmHandle[]): CSS2DObject[] {
   return handles.map((handle) => {
     const el = document.createElement('div')
-    el.className = 'planet-label'
-    el.textContent = handle.project.name.split('—')[0]?.trim() || handle.project.name
+    el.className = 'charm-label'
+    const short = handle.project.name.split('—')[0]?.trim() || handle.project.name
+    el.textContent = short
     const label = new CSS2DObject(el)
-    label.position.set(0, handle.project.size + 0.55, 0)
-    handle.group.add(label)
+    label.position.set(0, -0.15, 0)
+    handle.charm.add(label)
     return label
   })
 }

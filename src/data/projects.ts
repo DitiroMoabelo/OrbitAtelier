@@ -3,31 +3,38 @@ export type ProjectLink = {
   href: string
 }
 
-export type OrbitProject = {
+/** Shape vocabulary for the kinetic mobile — no spheres-as-planets. */
+export type CharmShape =
+  | 'ticket'
+  | 'book'
+  | 'capsule'
+  | 'wing'
+  | 'lantern'
+
+export type CharmProject = {
   id: string
   name: string
   tech: string
   blurb: string
   proof: string
   links: ProjectLink[]
-  /** Pastel surface colour */
+  /** Porcelain body colour */
   color: string
-  /** Soft atmosphere tint */
-  atmosphere: string
-  /** Distance from sun centre */
-  orbitRadius: number
-  /** Planet body radius */
-  size: number
-  /** Radians per second */
-  orbitSpeed: number
-  /** Axial spin */
-  spinSpeed: number
-  /** Optional ring */
-  hasRing?: boolean
-  ringColor?: string
+  /** Soft rim / thread tint */
+  accent: string
+  shape: CharmShape
+  /** Horizontal slot along the ceiling bar, -1..1 */
+  slot: number
+  /** Resting thread length */
+  drop: number
+  /** Pendulum phase offset */
+  phase: number
+  /** Sway amplitude */
+  sway: number
+  scale: number
 }
 
-export const projects: OrbitProject[] = [
+export const projects: CharmProject[] = [
   {
     id: 'helpdesk',
     name: 'IT Asset & Helpdesk System',
@@ -40,11 +47,13 @@ export const projects: OrbitProject[] = [
       { label: 'View code', href: 'https://github.com/DitiroMoabelo/IT-Asset-Helpdesk-System' },
     ],
     color: '#C7D8A5',
-    atmosphere: '#D8E6C3',
-    orbitRadius: 6.2,
-    size: 0.72,
-    orbitSpeed: 0.18,
-    spinSpeed: 0.6,
+    accent: '#9BB57A',
+    shape: 'ticket',
+    slot: -0.82,
+    drop: 2.4,
+    phase: 0.2,
+    sway: 0.22,
+    scale: 1.05,
   },
   {
     id: 'twiceasbooks',
@@ -61,13 +70,13 @@ export const projects: OrbitProject[] = [
       },
     ],
     color: '#F7C7D3',
-    atmosphere: '#FDECF2',
-    orbitRadius: 8.4,
-    size: 0.58,
-    orbitSpeed: 0.13,
-    spinSpeed: 0.85,
-    hasRing: true,
-    ringColor: '#F7C7D3',
+    accent: '#E8A0B4',
+    shape: 'book',
+    slot: -0.38,
+    drop: 3.1,
+    phase: 1.1,
+    sway: 0.28,
+    scale: 1,
   },
   {
     id: 'medibook',
@@ -77,12 +86,14 @@ export const projects: OrbitProject[] = [
       'A team-built hospital booking platform with patient, doctor, and admin areas, password resets, and AI service recommendations.',
     proof: '31 classes across auth, booking, and AI — browsable Spring Boot source with honest local-run docs.',
     links: [{ label: 'View code', href: 'https://github.com/DitiroMoabelo/MediBook' }],
-    color: '#A8C8E8',
-    atmosphere: '#D8E8F5',
-    orbitRadius: 10.6,
-    size: 0.64,
-    orbitSpeed: 0.1,
-    spinSpeed: 0.45,
+    color: '#B7D3EC',
+    accent: '#7FAFCF',
+    shape: 'capsule',
+    slot: 0.05,
+    drop: 2.7,
+    phase: 2.0,
+    sway: 0.2,
+    scale: 1.08,
   },
   {
     id: 'birdtrail',
@@ -95,11 +106,13 @@ export const projects: OrbitProject[] = [
       { label: 'View code', href: 'https://github.com/DitiroMoabelo/Birdtrail-android-app' },
     ],
     color: '#E8D5A3',
-    atmosphere: '#FFF7EE',
-    orbitRadius: 12.8,
-    size: 0.5,
-    orbitSpeed: 0.08,
-    spinSpeed: 0.9,
+    accent: '#C9B07A',
+    shape: 'wing',
+    slot: 0.48,
+    drop: 3.4,
+    phase: 2.7,
+    sway: 0.34,
+    scale: 1.12,
   },
   {
     id: 'gas',
@@ -113,12 +126,12 @@ export const projects: OrbitProject[] = [
       { label: 'View code', href: 'https://github.com/DitiroMoabelo/ThdimoganeGas' },
     ],
     color: '#DCC6E8',
-    atmosphere: '#EFDDF4',
-    orbitRadius: 15.0,
-    size: 0.55,
-    orbitSpeed: 0.06,
-    spinSpeed: 0.55,
-    hasRing: true,
-    ringColor: '#EFDDF4',
+    accent: '#B89BC9',
+    shape: 'lantern',
+    slot: 0.88,
+    drop: 2.9,
+    phase: 3.4,
+    sway: 0.24,
+    scale: 1,
   },
 ]

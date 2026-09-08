@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Orbit Atelier — an interactive WebGL solar system by Ditiro Moabelo. Click a planet to explore each project."
+      content="Charm Atelier — a kinetic WebGL sculpture by Ditiro Moabelo. Pull a hanging charm to open each project."
     />
-    <title>Orbit Atelier · Ditiro Moabelo</title>
+    <title>Charm Atelier · Ditiro Moabelo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,25 +18,26 @@
   </head>
   <body>
     <div id="app">
-      <canvas id="orbit-canvas" aria-label="Interactive 3D solar system of portfolio projects"></canvas>
+      <canvas id="orbit-canvas" aria-label="Interactive kinetic charm mobile of portfolio projects"></canvas>
 
       <div id="boot" class="boot" aria-live="polite">
-        <p class="boot__brand">Orbit Atelier</p>
+        <p class="boot__brand">Charm Atelier</p>
         <div class="boot__bar"><span id="boot-fill"></span></div>
-        <p class="boot__hint" id="boot-hint">Warming the sun…</p>
+        <p class="boot__hint" id="boot-hint">Threading the mobile…</p>
       </div>
 
       <header class="chrome chrome--top">
         <div class="brand">
           <p class="brand__name">Ditiro Moabelo</p>
-          <h1 class="brand__title">Orbit Atelier</h1>
+          <h1 class="brand__title">Charm Atelier</h1>
+          <p class="brand__sub">A hanging kinetic sculpture of my work — not a solar system demo.</p>
         </div>
-        <p class="hint" id="hint">Drag to orbit · Scroll to zoom · Click a planet</p>
+        <p class="hint" id="hint">Drag to look · Scroll to zoom · Pull a charm</p>
       </header>
 
       <aside id="panel" class="panel" hidden>
-        <button type="button" class="panel__close" id="panel-close" aria-label="Close project details">
-          ← Back to system
+        <button type="button" class="panel__close" id="panel-close" aria-label="Release charm">
+          ← Release charm
         </button>
         <p class="panel__eyebrow" id="panel-tech"></p>
         <h2 class="panel__title" id="panel-title"></h2>
@@ -46,13 +47,13 @@
       </aside>
 
       <footer class="chrome chrome--bottom">
-        <p>WebGL · Three.js · built for interaction, not decoration</p>
+        <p>WebGL · custom velvet shader · pendulum mobile · unique charm silhouettes</p>
       </footer>
 
       <div id="no-webgl" class="no-webgl" hidden>
         <h2>WebGL isn’t available here</h2>
         <p>
-          Orbit Atelier needs a browser with WebGL. Try Chrome or Edge, or open
+          Charm Atelier needs a browser with WebGL. Try Chrome or Edge, or open
           <a href="https://ditiromoabelo.github.io/DitiroPortfolio/">the main portfolio</a> instead.
         </p>
       </div>
