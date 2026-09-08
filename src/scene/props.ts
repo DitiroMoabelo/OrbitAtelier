@@ -252,11 +252,15 @@ function buildBattleStation(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  group.add(box(2.7, 0.09, 1.15, std('#EDE6E0', 0.42), 0, 0.78, 0))
+  // Desk shell — replaced by models/desk.glb when present.
+  const desk = new THREE.Group()
+  desk.name = 'slot-desk'
+  desk.add(box(2.7, 0.09, 1.15, std('#EDE6E0', 0.42), 0, 0.78, 0))
   ;[-1.25, 1.25].forEach((x) => {
-    ;[-0.47, 0.47].forEach((z) => group.add(box(0.09, 0.78, 0.09, walnut(WOOD_DARK, 0.55), x, 0.39, z)))
+    ;[-0.47, 0.47].forEach((z) => desk.add(box(0.09, 0.78, 0.09, walnut(WOOD_DARK, 0.55), x, 0.39, z)))
   })
-  group.add(box(2.5, 0.06, 0.5, walnut(WOOD_DARK, 0.55), 0, 0.32, -0.25))
+  desk.add(box(2.5, 0.06, 0.5, walnut(WOOD_DARK, 0.55), 0, 0.32, -0.25))
+  group.add(desk)
 
   // Under-desk glow strip.
   const underMat = new THREE.MeshBasicMaterial({ color: '#B98BD6' })
@@ -269,39 +273,44 @@ function buildBattleStation(project: RoomProject): Built {
   registerRgb(matEdge, 0.05, { speed: 0.06, lightness: 0.62 })
   group.add(box(1.94, 0.008, 0.76, matEdge, 0.05, 0.788, 0.14))
 
-  // Main monitor: the live helpdesk queue.
+  // Main monitor — replaced by models/monitor.glb when present.
+  const mainMonitor = new THREE.Group()
+  mainMonitor.name = 'slot-monitor-main'
   const screenMat = glowMat('#2A2036', project.color, 0.3)
   glow.push(screenMat)
-  group.add(cyl(0.2, 0.28, 0.04, std(DARK, 0.5), -0.4, 0.845, -0.28, 20))
-  group.add(box(0.08, 0.42, 0.09, std(DARK, 0.5), -0.4, 1.06, -0.28))
-  group.add(box(1.5, 0.84, 0.06, std(DARK, 0.45), -0.4, 1.66, -0.28))
-  group.add(box(1.38, 0.72, 0.02, screenMat, -0.4, 1.66, -0.24))
+  mainMonitor.add(cyl(0.2, 0.28, 0.04, std(DARK, 0.5), -0.4, 0.845, -0.28, 20))
+  mainMonitor.add(box(0.08, 0.42, 0.09, std(DARK, 0.5), -0.4, 1.06, -0.28))
+  mainMonitor.add(box(1.5, 0.84, 0.06, std(DARK, 0.45), -0.4, 1.66, -0.28))
+  mainMonitor.add(box(1.38, 0.72, 0.02, screenMat, -0.4, 1.66, -0.24))
 
   const rowMat = glowMat('#FFFFFF', '#FFFFFF', 0.4)
   glow.push(rowMat)
   const statusMat = glowMat(project.accent, project.accent, 0.4)
   glow.push(statusMat)
   for (let i = 0; i < 5; i += 1) {
-    group.add(box(0.9 - i * 0.08, 0.05, 0.01, rowMat, -0.62, 1.9 - i * 0.14, -0.228))
-    group.add(box(0.1, 0.05, 0.01, statusMat, 0.07, 1.9 - i * 0.14, -0.228))
+    mainMonitor.add(box(0.9 - i * 0.08, 0.05, 0.01, rowMat, -0.62, 1.9 - i * 0.14, -0.228))
+    mainMonitor.add(box(0.1, 0.05, 0.01, statusMat, 0.07, 1.9 - i * 0.14, -0.228))
   }
 
-  // Monitor backlight bleeding onto the wall.
   const bias = new THREE.MeshBasicMaterial({ color: '#FF7FC4' })
   registerRgb(bias, 0.3, { speed: 0.045, lightness: 0.6 })
-  group.add(box(1.5, 0.05, 0.05, bias, -0.4, 2.1, -0.31))
+  mainMonitor.add(box(1.5, 0.05, 0.05, bias, -0.4, 2.1, -0.31))
+  group.add(mainMonitor)
 
-  // Secondary vertical monitor.
-  group.add(cyl(0.15, 0.2, 0.04, std(DARK, 0.5), 0.95, 0.845, -0.3, 18))
-  group.add(box(0.07, 0.34, 0.08, std(DARK, 0.5), 0.95, 1.02, -0.3))
+  // Secondary vertical monitor — replaced by models/monitor-side.glb when present.
+  const sideMonitor = new THREE.Group()
+  sideMonitor.name = 'slot-monitor-side'
+  sideMonitor.add(cyl(0.15, 0.2, 0.04, std(DARK, 0.5), 0.95, 0.845, -0.3, 18))
+  sideMonitor.add(box(0.07, 0.34, 0.08, std(DARK, 0.5), 0.95, 1.02, -0.3))
   const sideBezel = box(0.52, 0.9, 0.05, std(DARK, 0.45), 0.98, 1.6, -0.3)
   sideBezel.rotation.y = -0.35
-  group.add(sideBezel)
+  sideMonitor.add(sideBezel)
   const sideScreenMat = glowMat('#2A2036', '#8FD9E0', 0.3)
   glow.push(sideScreenMat)
   const sideScreen = box(0.44, 0.82, 0.02, sideScreenMat, 1.0, 1.6, -0.27)
   sideScreen.rotation.y = -0.35
-  group.add(sideScreen)
+  sideMonitor.add(sideScreen)
+  group.add(sideMonitor)
 
   // Mechanical keyboard with per-key RGB.
   group.add(box(0.94, 0.05, 0.34, std('#3E2E45', 0.6), -0.1, 0.825, 0.22))
@@ -350,7 +359,6 @@ function buildBattleStation(project: RoomProject): Built {
     halo.rotation.y = Math.PI / 2
     stand.add(halo)
   })
-  // The cat ears.
   ;[-0.075, 0.075].forEach((z) => {
     const ear = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.11, 16), headsetMat)
     ear.position.set(0, 0.61, z)

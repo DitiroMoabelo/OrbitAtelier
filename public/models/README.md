@@ -8,6 +8,10 @@ Missing files fall back to the procedural room.
 | File | Replaces | Where |
 | --- | --- | --- |
 | `chair.glb` | gaming chair | Helpdesk |
+| `desk.glb` | desk | Helpdesk |
+| `monitor.glb` | main monitor | Helpdesk |
+| `monitor-side.glb` | side monitor | Helpdesk |
+| `desk-lamp.glb` | desk lamp | Helpdesk |
 | `plant.glb` | plant | left wall |
 | `bed.glb` | bed frame | right side |
 | `frame-a.glb` / `frame-b.glb` | wall posters | back wall |

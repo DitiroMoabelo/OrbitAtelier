@@ -50,9 +50,12 @@ function placeSlot(host: THREE.Object3D, model: THREE.Object3D, slot: ModelSlot)
   if (slot.targetHeight) scale = fitHeight(model, slot.targetHeight)
   model.scale.setScalar(scale)
 
-  if (slot.ground !== false) {
-    const box = new THREE.Box3().setFromObject(model)
-    if (Number.isFinite(box.min.y)) {
+  const box = new THREE.Box3().setFromObject(model)
+  if (Number.isFinite(box.min.y)) {
+    if (slot.ground === false && slot.position) {
+      // Keep wall/desk props: snap the model's bottom to the given Y.
+      model.position.y += slot.position[1] - box.min.y
+    } else if (slot.ground !== false) {
       model.position.y -= box.min.y
     }
   }
