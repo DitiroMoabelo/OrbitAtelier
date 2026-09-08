@@ -24,8 +24,9 @@ Missing files fall back to the procedural room.
 | `nightstand.glb` | nightstand | MediBook |
 | `desk.glb` | desk surface | Helpdesk |
 
-Bundled Poly Haven (CC0) assets: plant, bed, hanging frames, window, kitchen cabinet, stove, propane tank, desk, monitors, lamp, worn bookshelf, encyclopedia books.
+Bundled Poly Haven (CC0) assets: plant, bed, hanging frames, window, kitchen cabinet, stove, propane tank, desk, lamp, worn bookshelf, encyclopedia books.
 Chair sample: Khronos SheenChair.
+Monitors: modern PC displays from [GetGLB / Get3DModels](https://www.getglb.com/) (CC Attribution — credit authors on that page).
 
 ## Textures (`/textures`)
 
@@ -42,6 +43,7 @@ Bundled: Poly Haven `wood_floor` + `wool_boucle` (1k, CC0).
 2. [Kenney](https://kenney.nl/assets) — CC0 game packs
 3. [Quaternius](https://quaternius.com/) — CC0 stylized
 4. [Sketchfab](https://sketchfab.com/) — Downloadable + Free, prefer CC0
+5. [GetGLB](https://www.getglb.com/) — free GLB props (check each license)
 
 Export models as **glTF Binary (`.glb`)**. Keep each under ~5 MB when you can.
 
@@ -54,4 +56,5 @@ Export models as **glTF Binary (`.glb`)**. Keep each under ~5 MB when you can.
 ## Licence note
 
 All bundled Poly Haven files are CC0.  
-`chair.glb` (SheenChair) — [Khronos glTF Sample Models](https://github.com/KhronosGroup/glTF-Sample-Models).
+`chair.glb` (SheenChair) — [Khronos glTF Sample Models](https://github.com/KhronosGroup/glTF-Sample-Models).  
+`monitor.glb` / `monitor-side.glb` — CC Attribution via GetGLB/Get3DModels (modern PC monitors, not TVs).
