@@ -460,39 +460,43 @@ function buildWindowNook(project: RoomProject): Built {
   const sillMat = std('#E4CADA', 0.7)
   const zWall = ROOM.backZ + 0.16 - project.position[2]
 
-  // Dusk sky beyond the glass — the reason the room is lit by neon.
+  // Frame + dusk pane — replaced by models/window.glb when present.
+  const shell = new THREE.Group()
+  shell.name = 'slot-window'
+
   const pane = box(2.0, 1.85, 0.03, new THREE.MeshStandardMaterial({
     color: '#4E3E7A',
     roughness: 0.2,
     emissive: new THREE.Color('#7C5FA8'),
     emissiveIntensity: 0.85,
   }), 0, 2.55, zWall + 0.01)
-  group.add(pane)
+  shell.add(pane)
 
   const glowBand = box(1.9, 0.7, 0.02, new THREE.MeshBasicMaterial({ color: '#F09BB8' }), 0, 1.95, zWall - 0.02)
-  group.add(glowBand)
-  group.add(box(1.9, 0.32, 0.02, std('#3A2C52', 0.9), 0, 1.72, zWall - 0.05))
+  shell.add(glowBand)
+  shell.add(box(1.9, 0.32, 0.02, std('#3A2C52', 0.9), 0, 1.72, zWall - 0.05))
 
   const moon = new THREE.Mesh(new THREE.CircleGeometry(0.2, 32), new THREE.MeshBasicMaterial({ color: '#FFF3D8' }))
   moon.position.set(-0.55, 3.05, zWall - 0.04)
-  group.add(moon)
+  shell.add(moon)
 
   const starMat = new THREE.MeshBasicMaterial({ color: '#FFF6E0' })
   for (let i = 0; i < 22; i += 1) {
     const star = new THREE.Mesh(new THREE.CircleGeometry(0.012 + (i % 3) * 0.006, 8), starMat)
     star.position.set(-0.9 + Math.random() * 1.8, 2.35 + Math.random() * 1.1, zWall - 0.035)
-    group.add(star)
+    shell.add(star)
   }
 
-  group.add(box(2.3, 0.14, 0.16, frameMat, 0, 3.55, zWall + 0.06))
-  group.add(box(2.3, 0.14, 0.16, frameMat, 0, 1.56, zWall + 0.06))
-  group.add(box(0.14, 2.13, 0.16, frameMat, -1.08, 2.55, zWall + 0.06))
-  group.add(box(0.14, 2.13, 0.16, frameMat, 1.08, 2.55, zWall + 0.06))
-  group.add(box(0.09, 2.0, 0.12, frameMat, 0, 2.55, zWall + 0.06))
-  group.add(box(2.1, 0.08, 0.12, frameMat, 0, 2.55, zWall + 0.06))
-  group.add(box(2.6, 0.12, 0.44, sillMat, 0, 1.46, zWall + 0.2))
+  shell.add(box(2.3, 0.14, 0.16, frameMat, 0, 3.55, zWall + 0.06))
+  shell.add(box(2.3, 0.14, 0.16, frameMat, 0, 1.56, zWall + 0.06))
+  shell.add(box(0.14, 2.13, 0.16, frameMat, -1.08, 2.55, zWall + 0.06))
+  shell.add(box(0.14, 2.13, 0.16, frameMat, 1.08, 2.55, zWall + 0.06))
+  shell.add(box(0.09, 2.0, 0.12, frameMat, 0, 2.55, zWall + 0.06))
+  shell.add(box(2.1, 0.08, 0.12, frameMat, 0, 2.55, zWall + 0.06))
+  shell.add(box(2.6, 0.12, 0.44, sillMat, 0, 1.46, zWall + 0.2))
+  group.add(shell)
 
-  // Bird on the sill — the BirdTrail accent.
+  // BirdTrail accents stay even when a GLB replaces the window shell.
   const bird = new THREE.Group()
   bird.position.set(0.72, 1.66, zWall + 0.26)
   bird.rotation.y = -0.6
@@ -520,7 +524,6 @@ function buildWindowNook(project: RoomProject): Built {
   ;[-0.05, 0.05].forEach((z) => bird.add(cyl(0.012, 0.012, 0.1, std('#E89A5B', 0.5), 0.02, -0.14, z, 8)))
   group.add(bird)
 
-  // Binoculars and a field notebook.
   const binos = new THREE.Group()
   binos.position.set(-0.62, 1.63, zWall + 0.26)
   binos.rotation.y = 0.35
@@ -558,35 +561,43 @@ function buildKitchenette(project: RoomProject): Built {
   const group = new THREE.Group()
   const glow: THREE.MeshStandardMaterial[] = []
 
-  group.add(box(2.3, 0.88, 0.7, walnut('#9A6B78', 0.62), 0, 0.44, 0))
-  group.add(box(2.42, 0.09, 0.78, std('#E8DDD2', 0.38), 0, 0.92, 0))
-  group.add(box(2.3, 1.1, 0.05, std('#D4C0C8', 0.78), 0, 1.5, -0.34))
+  // Cabinets / counter — replaced by kitchen.glb when present.
+  const shell = new THREE.Group()
+  shell.name = 'slot-kitchen'
 
-  // Under-cabinet LED, because of course there is one.
+  shell.add(box(2.3, 0.88, 0.7, walnut('#9A6B78', 0.62), 0, 0.44, 0))
+  shell.add(box(2.42, 0.09, 0.78, std('#E8DDD2', 0.38), 0, 0.92, 0))
+  shell.add(box(2.3, 1.1, 0.05, std('#D4C0C8', 0.78), 0, 1.5, -0.34))
+
   const underMat = new THREE.MeshBasicMaterial({ color: '#8FD9E0' })
   registerRgb(underMat, 0.4, { speed: 0.05, lightness: 0.62 })
-  group.add(box(2.1, 0.035, 0.035, underMat, 0, 0.96, 0.34))
+  shell.add(box(2.1, 0.035, 0.035, underMat, 0, 0.96, 0.34))
 
   ;[-0.56, 0.56].forEach((x) => {
-    group.add(box(1.0, 0.5, 0.03, std('#B87BAE', 0.7), x, 0.6, 0.36))
-    group.add(cyl(0.02, 0.02, 0.24, std(METAL, 0.35, 0.7), x, 0.6, 0.39, 12).rotateZ(Math.PI / 2))
+    shell.add(box(1.0, 0.5, 0.03, std('#B87BAE', 0.7), x, 0.6, 0.36))
+    shell.add(cyl(0.02, 0.02, 0.24, std(METAL, 0.35, 0.7), x, 0.6, 0.39, 12).rotateZ(Math.PI / 2))
   })
+  group.add(shell)
 
-  // Stove with lit burners.
-  group.add(box(0.94, 0.05, 0.62, std('#3C4150', 0.35, 0.4), -0.6, 0.97, 0))
+  // Stove with lit burners — replaced by stove.glb when present.
+  const stove = new THREE.Group()
+  stove.name = 'slot-stove'
+  stove.add(box(0.94, 0.05, 0.62, std('#3C4150', 0.35, 0.4), -0.6, 0.97, 0))
   const flameMat = glowMat('#7FA8E8', '#5C8FE0', 0.3)
   glow.push(flameMat)
   ;[[-0.82, -0.14], [-0.38, -0.14], [-0.82, 0.16], [-0.38, 0.16]].forEach(([x, z]) => {
     const burner = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.022, 10, 24), flameMat)
     burner.rotation.x = -Math.PI / 2
     burner.position.set(x, 1.005, z)
-    group.add(burner)
+    stove.add(burner)
   })
+  stove.add(cyl(0.14, 0.17, 0.24, std('#CFD4DB', 0.3, 0.6), -0.82, 1.13, -0.14, 22))
+  stove.add(cyl(0.04, 0.05, 0.09, std('#CFD4DB', 0.3, 0.6), -0.82, 1.29, -0.14, 14))
+  group.add(stove)
 
-  group.add(cyl(0.14, 0.17, 0.24, std('#CFD4DB', 0.3, 0.6), -0.82, 1.13, -0.14, 22))
-  group.add(cyl(0.04, 0.05, 0.09, std('#CFD4DB', 0.3, 0.6), -0.82, 1.29, -0.14, 14))
-
-  // The gas cylinders this business actually sells.
+  // LPG cylinders stay as the brand accent (or swap via cylinder.glb).
+  const cylinders = new THREE.Group()
+  cylinders.name = 'slot-cylinders'
   const cylinderMat = new THREE.MeshStandardMaterial({
     color: project.color,
     roughness: 0.4,
@@ -618,8 +629,9 @@ function buildKitchenette(project: RoomProject): Built {
     return g
   }
 
-  group.add(makeCylinder(0.75, 0.62, 1))
-  group.add(makeCylinder(1.28, 0.32, 0.72))
+  cylinders.add(makeCylinder(0.75, 0.62, 1))
+  cylinders.add(makeCylinder(1.28, 0.32, 0.72))
+  group.add(cylinders)
 
   return { group, glow }
 }

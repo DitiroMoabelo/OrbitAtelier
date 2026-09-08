@@ -11,11 +11,15 @@ Missing files fall back to the procedural room.
 | `plant.glb` | plant | left wall |
 | `bed.glb` | bed frame | right side |
 | `frame-a.glb` / `frame-b.glb` | wall posters | back wall |
+| `window.glb` | window frame | BirdTrail |
+| `kitchen.glb` | cabinets / counter | Thedimogane Gas |
+| `stove.glb` | stove | Thedimogane Gas |
+| `cylinder.glb` | LPG tanks | Thedimogane Gas |
 | `bookshelf.glb` | shelf | TwiceAsBooks |
 | `nightstand.glb` | nightstand | MediBook |
 | `desk.glb` | desk surface | Helpdesk |
 
-Bundled Poly Haven (CC0) assets: plant, bed, hanging frames.
+Bundled Poly Haven (CC0) assets: plant, bed, hanging frames, window, kitchen cabinet, stove, propane tank.
 Chair sample: Khronos SheenChair.
 
 ## Textures (`/textures`)
