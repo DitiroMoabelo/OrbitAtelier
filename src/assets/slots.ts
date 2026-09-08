@@ -66,7 +66,16 @@ export const MODEL_SLOTS: ModelSlot[] = [
     replaces: 'slot-bookshelf',
     position: [0, 0, 0],
     rotationY: 0,
-    targetHeight: 2.9,
+    targetHeight: 2.85,
+  },
+  {
+    file: 'books.glb',
+    attachTo: 'twiceasbooks',
+    replaces: 'slot-shelf-books',
+    position: [-0.15, 0.85, 0.02],
+    rotationY: 0.08,
+    targetHeight: 0.55,
+    ground: false,
   },
   {
     file: 'bed.glb',

@@ -169,8 +169,6 @@ export function updateProps(handles: PropHandle[], dt: number, time: number): vo
 
 function buildBookshelf(project: RoomProject): Built {
   const group = new THREE.Group()
-  const body = new THREE.Group()
-  body.name = 'slot-bookshelf'
   const glow: THREE.MeshStandardMaterial[] = []
 
   const frame = walnut()
@@ -178,31 +176,36 @@ function buildBookshelf(project: RoomProject): Built {
   const height = 2.9
   const depth = 0.5
 
+  // Empty frame — replaced by models/bookshelf.glb when present.
+  const body = new THREE.Group()
+  body.name = 'slot-bookshelf'
   body.add(box(0.1, height, depth, frame, -width / 2, height / 2, 0))
   body.add(box(0.1, height, depth, frame, width / 2, height / 2, 0))
   body.add(box(width, 0.1, depth, frame, 0, height, 0))
   body.add(box(width, 0.14, depth, frame, 0, 0.07, 0))
   body.add(box(width, height, 0.05, std('#3E2E45', 0.9), 0, height / 2, -depth / 2))
-
   const shelfYs = [0.78, 1.44, 2.1]
   shelfYs.forEach((y) => body.add(box(width - 0.1, 0.07, depth - 0.04, frame, 0, y, 0)))
+  group.add(body)
 
-  // Shelf-edge LED strips backlight the books.
+  // Accents stay even when a GLB replaces the frame.
+  const accents = new THREE.Group()
+  accents.name = 'slot-shelf-accents'
+
   ;[0.14, 0.85, 1.51, 2.17].forEach((y, i) => {
     const strip = new THREE.MeshBasicMaterial({ color: '#FF8FD0' })
     registerRgb(strip, 0.2 + i * 0.14, { speed: 0.05, lightness: 0.6 })
-    body.add(box(width - 0.16, 0.035, 0.035, strip, 0, y - 0.045, depth / 2 - 0.06))
+    accents.add(box(width - 0.16, 0.035, 0.035, strip, 0, y - 0.045, depth / 2 - 0.06))
   })
 
-  // Books are the accent: hovering the shelf lights up every spine.
+  const books = new THREE.Group()
+  books.name = 'slot-shelf-books'
   const spineColors = ['#F7A8CE', '#E86FB0', '#B98BD6', '#8FD9E0', '#C7E8A5', '#F2D9A0', '#EB8FC9']
   const rows = [0.14, 0.85, 1.51, 2.17]
-
   rows.forEach((baseY, rowIndex) => {
     let x = -width / 2 + 0.14
     const rowHeight = rowIndex === 0 ? 0.6 : 0.55
     let i = 0
-    // The top shelf is reserved for collectibles instead of books.
     const limit = rowIndex === 3 ? width / 2 - 0.95 : width / 2 - 0.2
     while (x < limit) {
       const thickness = 0.07 + ((i * 7 + rowIndex * 3) % 4) * 0.022
@@ -217,15 +220,15 @@ function buildBookshelf(project: RoomProject): Built {
         bookMesh.rotation.z = -0.22
         bookMesh.position.x += 0.05
       }
-      body.add(bookMesh)
+      books.add(bookMesh)
 
       x += thickness + 0.012
       i += 1
     }
   })
+  accents.add(books)
 
-  // Collectibles: a plushie and a mini arcade cabinet share the top shelf.
-  body.add(createPlushie('#F7A8CE', '#FFD9EA', 0.42, 2.36, 0.02, -0.4, 0.62))
+  accents.add(createPlushie('#F7A8CE', '#FFD9EA', 0.42, 2.36, 0.02, -0.4, 0.62))
 
   const cabinet = new THREE.Group()
   cabinet.position.set(0.86, 2.17, 0.02)
@@ -234,16 +237,15 @@ function buildBookshelf(project: RoomProject): Built {
   glow.push(arcadeMat)
   cabinet.add(box(0.17, 0.14, 0.02, arcadeMat, 0, 0.3, 0.1))
   cabinet.add(box(0.19, 0.05, 0.06, std('#E86FB0', 0.5), 0, 0.16, 0.1))
-  body.add(cabinet)
+  accents.add(cabinet)
 
-  // Flat-stacked books and a mug crowning the shelf.
   const flatMat = glowMat(project.color, project.accent, 0.5)
   glow.push(flatMat)
-  body.add(box(0.72, 0.09, 0.5, flatMat, -0.4, height + 0.1, 0))
-  body.add(box(0.66, 0.08, 0.46, std('#FFF3E6', 0.6), -0.4, height + 0.19, 0))
-  body.add(cyl(0.1, 0.09, 0.19, std('#E86FB0', 0.5), 0.55, height + 0.15, 0.02, 20))
+  accents.add(box(0.72, 0.09, 0.5, flatMat, -0.4, height + 0.1, 0))
+  accents.add(box(0.66, 0.08, 0.46, std('#FFF3E6', 0.6), -0.4, height + 0.19, 0))
+  accents.add(cyl(0.1, 0.09, 0.19, std('#E86FB0', 0.5), 0.55, height + 0.15, 0.02, 20))
 
-  group.add(body)
+  group.add(accents)
   return { group, glow }
 }
 
